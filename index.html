@@ -70,6 +70,8 @@ header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; back
 /* Controles comuns */
 label { display: flex; flex-direction: column; gap: 7px; font-size: 13px; font-weight: 500; color: var(--muted); }
 input, select { font: 14px var(--body); color: var(--fg); background: var(--campo); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 100%; }
+.abrir-app { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.abrir-app a { color: var(--accent); font-weight: 600; }
 label.opcao { flex-direction: row; align-items: center; gap: 8px; cursor: pointer; }
 label.opcao input { width: auto; padding: 0; accent-color: var(--accent); }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -291,6 +293,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     <div class="cartao" id="cartaoEntrar">
       <h2>Entrar numa sala</h2>
       <p>Informe o código da sala para participar.</p>
+      <p class="abrir-app" id="abrirApp" hidden>Tem o aplicativo PrismaStream? <a id="linkApp" href="#">Abrir esta sala no aplicativo</a></p>
       <label for="codigoSala"><span>Código da sala <em class="obrig" aria-hidden="true">*</em></span>
         <input id="codigoSala" maxlength="12" required autocomplete="off">
       </label>
@@ -449,7 +452,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
 (() => {
   // mude aqui a cada versão nova distribuída
   // (o primeiro número diferente = versões incompatíveis, a sala recusa)
-  const VERSAO = '1.1.2';
+  const VERSAO = '1.2.0';
   const maior = v => String(v || '0').split('.')[0];
 
   const $ = id => document.getElementById(id);
@@ -527,6 +530,31 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
   }
   const params = new URLSearchParams(location.search);
   if (params.get('sala')) $('codigoSala').value = params.get('sala').toUpperCase();
+
+  // ---------- links prismastream://sala/CÓDIGO ----------
+  // No navegador (página hospedada, aberta pelo botão do Discord): tenta abrir o app
+  // instalado com a mesma sala. Se o app não estiver instalado o navegador não faz nada,
+  // e a página continua funcionando normalmente.
+  const salaDoLink = (params.get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  if (!emTauri && salaDoLink) {
+    const link = 'prismastream://sala/' + salaDoLink;
+    $('linkApp').href = link;
+    $('abrirApp').hidden = false;
+    location.href = link;
+  }
+  // No app: o link que abriu o exe (ou que chegou com ele já aberto) preenche o código
+  window.abrirSalaPorLink = codigo => {
+    if (entrou) {
+      if (codigo !== codigoSala) mensagem('', `Convite recebido para a sala ${codigo}. Saia desta sala para entrar nela.`, true);
+      return;
+    }
+    $('codigoSala').value = codigo;
+    $('codigoSala').removeAttribute('aria-invalid');
+    $($('apelidoEntrar').value ? 'btnEntrar' : 'apelidoEntrar').focus();
+  };
+  if (emTauri) {
+    window.__TAURI__.core.invoke('link_inicial').then(c => { if (c) window.abrirSalaPorLink(c); }).catch(() => {});
+  }
 
   // ---------- SDP ----------
   // - áudio Opus em estéreo e 192 kbps (o padrão do WebRTC é mono, ajustado para voz)
