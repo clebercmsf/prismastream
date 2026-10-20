@@ -130,28 +130,51 @@ button.vazio:hover { background: var(--soft); border-color: var(--line); }
 .olho svg { width: 18px; height: 18px; }
 .barra { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .barra .espaco { flex: 1; }
-.barra-video { padding-top: 12px; border-top: 1px solid var(--line); }
-.barra-video #info { flex: 1; min-width: 0; }
-.barra-video .espaco { display: none; }
-.som { display: flex; align-items: center; gap: 8px; }
-.som .contagem { min-width: 44px; font-size: 12px; }
-#volume { width: 120px; accent-color: var(--accent); cursor: pointer; padding: 0; border: 0; background: none; }
-#volume:disabled { opacity: .5; cursor: default; }
-@media (max-width: 520px) { .som { flex: 1 1 100%; } #volume { flex: 1; width: auto; } }
-/* player da tela cheia: barra sobre o vídeo, some sozinha (junto com o cursor) quando o mouse para */
-.player { display: none; position: absolute; left: 0; right: 0; bottom: 0; align-items: center; gap: 10px; padding: 40px 20px 18px;
-  background: linear-gradient(transparent, var(--veu)); color: #fff; opacity: 0; transition: opacity .25s; }
-.tela.cheia { border-radius: 0; cursor: none; }
-.tela.cheia .player { display: flex; }
-.tela.cheia.ativo { cursor: default; }
-.tela.cheia.ativo .player { opacity: 1; }
+/* Palco: um quadro por transmissão assistida. "grade" = todos iguais; "destaque" = um grande + miniaturas */
+.palco-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.palco-topo h3 { margin: 0; font: 600 16px var(--body); }
+.menu-palco { position: relative; }
+.menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 230px; display: flex; flex-direction: column; gap: 2px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px; box-shadow: 0 12px 32px rgba(0, 0, 0, .28); }
+.menu button { position: relative; text-align: left; border: 0; background: transparent; font-weight: 500; padding: 9px 12px 9px 34px; }
+.menu button:hover, .menu button:focus-visible { background: var(--soft); }
+.menu button[aria-checked="true"]::before { content: "✓"; position: absolute; left: 12px; color: var(--accent); font-weight: 700; }
+.grade { display: grid; gap: 10px; }
+.grade.em-grade { grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr)); }
+.grade.em-destaque { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 520px) { .grade.em-grade { grid-template-columns: minmax(0, 1fr); } }
+.miniaturas { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.miniaturas .quadro:not(.cheia) video { cursor: pointer; }
+.miniaturas .quadro:not(.cheia) :is(.volume, .volume-txt, .info, .olho) { display: none; }
+.miniaturas .quadro:not(.cheia) .player { padding: 24px 6px 6px; gap: 4px; justify-content: flex-end; }
+.miniaturas .quadro:not(.cheia) .selos { top: 8px; left: 8px; }
+.miniaturas .quadro:not(.cheia) .selo { font-size: 11px; padding: 5px 9px 5px 7px; }
+.miniaturas .quadro:not(.cheia) .aviso { padding: 12px; background: none; font-size: 13px; }
+/* player de cada quadro: barra sobre o vídeo que aparece ao mexer o mouse e some sozinha;
+   em tela cheia o cursor some junto */
+.player { display: flex; position: absolute; left: 0; right: 0; bottom: 0; align-items: center; gap: 8px; padding: 40px 14px 12px;
+  background: linear-gradient(transparent, var(--veu)); color: #fff; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.quadro.ativo .player, .quadro:focus-within .player { opacity: 1; }
+/* o degradê nunca pega o clique (clique na miniatura, duplo clique no vídeo); os botões só quando visíveis */
+.quadro.ativo .player > *, .quadro:focus-within .player > * { pointer-events: auto; }
+.quadro.cheia { border-radius: 0; cursor: none; }
+.quadro.cheia.ativo { cursor: default; }
+.quadro.cheia .player { padding: 40px 20px 18px; }
 .player button { background: transparent; border-color: transparent; color: #fff; }
 .player button:hover { background: var(--veu-botao); border-color: transparent; }
-.player .contagem { color: #fff; min-width: 44px; font-size: 13px; }
-.player .espaco { flex: 1; }
-#volumeCheia { width: 160px; accent-color: var(--accent-2); cursor: pointer; padding: 0; border: 0; background: none; }
-#volumeCheia:disabled { opacity: .5; cursor: default; }
-@media (max-width: 520px) { .player { padding: 30px 12px 12px; } #volumeCheia { flex: 1; width: auto; } }
+.player .contagem { color: #fff; font-size: 12px; }
+.player .volume-txt { min-width: 44px; }
+.player .info { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; opacity: .85; }
+.player .volume { width: 110px; accent-color: var(--accent-2); cursor: pointer; padding: 0; border: 0; background: none; }
+.quadro.cheia .player .volume { width: 160px; }
+.player .volume:disabled { opacity: .5; cursor: default; }
+.btn-cheia .recolher, .quadro.cheia .btn-cheia .expandir { display: none; }
+.quadro.cheia .btn-cheia .recolher { display: block; }
+@media (max-width: 520px) { .player { padding: 30px 8px 8px; } .player .info { display: none; } .player .volume { flex: 1; width: auto; } }
+/* Minha transmissão: blocos da tela e da câmera */
+.fonte { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.subtitulo { font: 600 15px var(--body); }
+#infoCamera:empty { display: none; }
 
 /* Lista de lives */
 .lives { display: flex; flex-direction: column; gap: 8px; }
@@ -319,40 +342,52 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
 
     <div class="palco">
       <div class="painel" id="painelAssistir">
-        <div class="tela" id="tela">
-          <video id="video" autoplay playsinline muted></video>
-          <div class="aviso" id="avisoTela">Selecione uma transmissão na lista para assistir.</div>
+        <div class="palco-topo">
+          <h3 id="tituloPalco">Assistir</h3>
+          <div class="menu-palco">
+            <button class="icone vazio" id="btnLayout" aria-label="Organização do palco" title="Organização do palco" aria-haspopup="menu" aria-expanded="false" aria-controls="menuLayout">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+            </button>
+            <div class="menu" id="menuLayout" role="menu" hidden>
+              <button role="menuitemradio" data-layout="grade" aria-checked="true">Grade lado a lado</button>
+              <button role="menuitemradio" data-layout="destaque" aria-checked="false">Uma grande + miniaturas</button>
+            </div>
+          </div>
+        </div>
+        <div class="grade em-grade" id="grade">
+          <div class="tela" id="telaVazia">
+            <div class="aviso" id="avisoTela">Selecione uma ou mais transmissões na lista para assistir.</div>
+          </div>
+          <div class="miniaturas" id="miniaturas" hidden></div>
+        </div>
+      </div>
+      <!-- um quadro por transmissão assistida (criado em criarQuadro) -->
+      <template id="modeloQuadro">
+        <div class="tela quadro">
+          <video autoplay playsinline muted></video>
+          <div class="aviso">Conectando…</div>
           <div class="selos">
-            <span class="selo" id="selo" hidden>AO VIVO</span>
-            <span class="olho" id="olhoTela" hidden>
+            <span class="selo">AO VIVO</span>
+            <span class="olho" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span id="olhoTxt">0</span>
+              <span class="olho-n">0</span>
             </span>
           </div>
-          <div class="player" id="player">
-            <button id="btnMudoCheia" class="icone" aria-label="Silenciar">🔊</button>
-            <input type="range" id="volumeCheia" min="0" max="100" step="1" value="100" aria-label="Volume">
-            <span class="contagem" id="volumeTxtCheia">100%</span>
-            <span class="espaco"></span>
-            <button id="btnSairCheia" class="icone" aria-label="Sair da tela cheia" title="Sair da tela cheia (Esc)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+          <div class="player">
+            <button class="icone mudo" aria-label="Silenciar">🔊</button>
+            <input type="range" class="volume" min="0" max="100" step="1" value="100" aria-label="Volume">
+            <span class="contagem volume-txt">100%</span>
+            <span class="contagem info"></span>
+            <button class="icone btn-cheia" aria-label="Tela cheia" title="Tela cheia">
+              <svg class="expandir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+              <svg class="recolher" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+            </button>
+            <button class="icone fechar" aria-label="Parar de assistir" title="Parar de assistir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
             </button>
           </div>
         </div>
-        <div class="barra barra-video">
-          <div class="som" id="som">
-            <button id="btnMudo" class="icone vazio" aria-label="Silenciar">🔊</button>
-            <input type="range" id="volume" min="0" max="100" step="1" value="100" aria-label="Volume">
-            <span class="contagem" id="volumeTxt">100%</span>
-          </div>
-          <span class="contagem" id="info"></span>
-          <span class="espaco"></span>
-          <button id="btnPararAssistir" hidden>Parar de assistir</button>
-          <button id="btnTelaCheia" class="icone vazio" aria-label="Tela cheia" title="Tela cheia">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-          </button>
-        </div>
-      </div>
+      </template>
 
       <div class="painel minha-live" id="painelMinhaLive" hidden>
         <div class="minha-cabeca">
@@ -361,7 +396,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
           </svg>
           <div class="textos">
             <strong>Sua transmissão</strong>
-            <span class="sub">Compartilhe sua tela com os participantes da sala.</span>
+            <span class="sub">Compartilhe sua tela, sua câmera ou as duas com os participantes da sala.</span>
           </div>
           <span class="estado-live" id="estadoLive">inativa</span>
         </div>
@@ -417,13 +452,30 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
             <button type="button" id="btnAtualizarProcessos">Atualizar lista</button>
             <label class="opcao" id="opcaoPresenca" hidden><input type="checkbox" id="presencaDiscord" checked> Mostrar minha atividade no Discord</label>
           </div>
-          <div class="barra">
-            <button class="primario" id="btnTransmitir">Transmitir minha tela</button>
-            <button id="btnTrocarTela" hidden>Trocar tela ou janela</button>
-            <button class="perigo" id="btnPararLive" hidden>Parar transmissão</button>
+          <div class="fonte">
+            <strong class="subtitulo">Tela</strong>
+            <div class="barra">
+              <button class="primario" id="btnTransmitir">Transmitir minha tela</button>
+              <button id="btnTrocarTela" hidden>Trocar tela ou janela</button>
+              <button class="perigo" id="btnPararLive" hidden>Parar tela</button>
+            </div>
+            <span class="contagem" id="infoLive"></span>
           </div>
-          <span class="contagem" id="infoLive"></span>
-          <span class="dica">Cada espectador consome parte da sua banda de upload.</span>
+          <div class="fonte">
+            <strong class="subtitulo">Câmera</strong>
+            <div class="controles">
+              <label for="camera">Câmera
+                <select id="camera"><option value="">Câmera padrão</option></select>
+              </label>
+              <label class="opcao"><input type="checkbox" id="microfone" checked> Incluir microfone</label>
+            </div>
+            <div class="barra">
+              <button class="primario" id="btnCamera">Transmitir câmera</button>
+              <button class="perigo" id="btnPararCamera" hidden>Parar câmera</button>
+            </div>
+            <span class="contagem" id="infoCamera"></span>
+          </div>
+          <span class="dica">A qualidade escolhida acima vale para a tela e para a câmera. Cada espectador consome parte da sua banda de upload, e a tela e a câmera contam separado.</span>
         </div>
       </div>
     </div>
@@ -452,23 +504,31 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
 (() => {
   // mude aqui a cada versão nova distribuída
   // (o primeiro número diferente = versões incompatíveis, a sala recusa)
-  const VERSAO = '1.2.0';
+  const VERSAO = '2.0.0';
   const maior = v => String(v || '0').split('.')[0];
 
   const $ = id => document.getElementById(id);
   $('versao').textContent = 'v' + VERSAO;
   const PREFIXO = 'prisma-sala-';
+  // Servidores ICE para a conexão direta. Ao passar `config`, o PeerJS deixa de usar os dele,
+  // então os TURN públicos do PeerJS são repetidos aqui. Mais de um STUN ajuda quem demora
+  // a descobrir o próprio endereço público (era uma das causas do "carregando infinito").
+  const OPCOES_PEER = { config: { iceServers: [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' },
+  ] } };
 
   // ---------- estado ----------
-  let peer = null, papel = null, meuId = '', apelido = 'nickname', codigoSala = '', senhaSala = '', entrou = false;
-  let conexaoHub = null;              // membro -> criador da sala
-  const conexoes = new Map();         // só no criador: id -> conexão de dados
-  const membrosHub = new Map();       // só no criador: id -> { id, nick, live }
-  let membros = [];                   // lista que todos recebem
-  let stream = null, config = null;   // minha transmissão
-  const espectadores = new Map();     // quem assiste minha tela: id -> { call, nick }
-  let assistindo = null, chamadaAssistida = null; // o que eu estou assistindo
-  let timerEnvio = null, timerAssistir = null;
+  let peer = null, peerHub = null, papel = null, meuId = '', apelido = 'nickname', codigoSala = '', senhaSala = '', entrou = false;
+  let conexaoHub = null, hubPronto = false; // eu -> anfitrião (pronto = já recebi o bemvindo)
+  let hostAtual = '';                 // ID (peer próprio) de quem está como anfitrião
+  const conexoes = new Map();         // só no anfitrião: id -> conexão de dados
+  const membrosHub = new Map();       // só no anfitrião: id -> { id, nick, lives: { tela, camera } }
+  let membros = [];                   // lista que todos recebem, na ordem de entrada
+  const transmissoes = { tela: null, camera: null }; // as minhas: { stream, config, espectadores: Map(id -> { call, nick }) }
+  const assistindo = new Map();       // o que eu assisto: 'id|fonte' -> { id, fonte, nick, call, el, volume, mudo, … }
+  let timerEnvio = null;
 
   // ---------- áudio nativo (só dentro da build Tauri, Windows) ----------
   // Fora do Tauri isso fica tudo inerte: a captura normal da getDisplayMedia continua igual.
@@ -622,18 +682,20 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     }
     return saida.join('\r\n');
   }
-  const sdpEnvio = sdp => {
-    const kbps = Math.round(config.bitrate / 1000);
+  // cada transmissão (tela, câmera) tem a própria config
+  const sdpEnvioPara = t => sdp => {
+    const kbps = Math.round(t.config.bitrate / 1000);
     return ajustarSdp(sdp, { kbps, inicio: Math.round(kbps * 0.7), minimo: Math.round(kbps * 0.2),
-                             codec: config.codec });
+                             codec: t.config.codec });
   };
   const sdpRecebe = sdp => ajustarSdp(sdp, { kbps: 60000 }); // quem assiste só libera; quem transmite limita
 
   // trava resolução/fps/bitrate no codificador de cada espectador
-  function travarQualidade(call) {
+  function travarQualidade(call, obterConfig) {
     const pc = call.peerConnection;
     if (!pc) return;
     const aplicar = async () => {
+      const config = obterConfig();
       if (!config) return;
       for (const sender of pc.getSenders()) {
         if (!sender.track) continue;
@@ -656,25 +718,37 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
   }
 
   // ======================================================================
-  // SALA: o criador guarda a lista de quem está na sala, repassa o chat e
-  // os pedidos de "assistir". O vídeo vai direto de quem transmite para
-  // quem assiste, sem passar pelo criador.
+  // SALA
+  // Quem está como anfitrião (hub) abre um segundo peer, com o ID fixo da sala
+  // (PREFIXO + código): ele guarda a lista de membros, repassa o chat e os pedidos de
+  // "assistir". A identidade de cada pessoa é o próprio peer (ID aleatório), que não muda;
+  // por isso o papel de anfitrião pode passar para outra pessoa quando quem tinha sai (ver
+  // MIGRAÇÃO) e a sala só acaba quando não sobra ninguém. O vídeo vai direto de quem
+  // transmite para quem assiste e não passa pelo anfitrião, então não cai na troca.
   // ======================================================================
+  const FONTES = ['tela', 'camera'];
+  const NOME_FONTE = { tela: 'Tela', camera: 'Câmera' };
 
-  // envia para o criador da sala (ou processa direto, se eu sou o criador)
+  // envia para o anfitrião (ou processa direto, se o anfitrião sou eu)
   function enviarHub(msg) {
     if (papel === 'hub') processarNoHub(msg, meuId);
-    else if (conexaoHub && conexaoHub.open) conexaoHub.send(msg);
+    else if (hubPronto && conexaoHub && conexaoHub.open) conexaoHub.send(msg);
   }
 
-  // ---- só o criador ----
+  // ---- só o anfitrião ----
   function enviarPara(id, msg) {
     if (id === meuId) return receber(msg);
     const c = conexoes.get(id);
     if (c && c.open) c.send(msg);
   }
   function enviarTodos(msg) { for (const id of membrosHub.keys()) enviarPara(id, msg); }
-  function publicarMembros() { enviarTodos({ t: 'membros', lista: [...membrosHub.values()] }); }
+  // logo depois de uma troca de anfitrião a lista ainda está incompleta (o pessoal vai
+  // reconectando aos poucos): marcada como parcial, ninguém fecha transmissão por causa dela
+  let listaParcialAte = 0;
+  function publicarMembros() {
+    enviarTodos({ t: 'membros', lista: [...membrosHub.values()], host: meuId, parcial: Date.now() < listaParcialAte });
+  }
+  const limparInfo = i => i ? { altura: +i.altura || 0, fps: +i.fps || 0, n: +i.n || 0 } : null;
 
   function processarNoHub(d, de) {
     const m = membrosHub.get(de);
@@ -683,14 +757,17 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       const texto = String(d.texto || '').slice(0, 300);
       if (texto.trim()) enviarTodos({ t: 'chat', nick: m.nick, texto });
     } else if (d.t === 'live') {
-      const antes = m.live;
-      m.live = d.info ? { altura: +d.info.altura || 0, fps: +d.info.fps || 0, n: +d.info.n || 0 } : null;
-      if (!antes && m.live) enviarTodos({ t: 'sistema', texto: `${m.nick} iniciou uma transmissão.` });
-      if (antes && !m.live) enviarTodos({ t: 'sistema', texto: `${m.nick} encerrou a transmissão.` });
+      if (!FONTES.includes(d.fonte)) return;
+      const antes = m.lives[d.fonte];
+      m.lives[d.fonte] = limparInfo(d.info);
+      const qual = d.fonte === 'camera' ? 'a câmera' : 'a tela';
+      // `retomando`: reenvio depois de uma troca de anfitrião, não é transmissão nova
+      if (!antes && m.lives[d.fonte] && !d.retomando) enviarTodos({ t: 'sistema', texto: `${m.nick} começou a transmitir ${qual}.` });
+      if (antes && !m.lives[d.fonte]) enviarTodos({ t: 'sistema', texto: `${m.nick} parou de transmitir ${qual}.` });
       publicarMembros();
     } else if (d.t === 'assistir' || d.t === 'parar') {
-      if (!membrosHub.has(d.alvo) || d.alvo === de) return;
-      enviarPara(d.alvo, { t: d.t === 'assistir' ? 'pedido' : 'cancelar', de, nick: m.nick });
+      if (!membrosHub.has(d.alvo) || d.alvo === de || !FONTES.includes(d.fonte)) return;
+      enviarPara(d.alvo, { t: d.t === 'assistir' ? 'pedido' : 'cancelar', de, nick: m.nick, fonte: d.fonte });
     }
   }
 
@@ -708,15 +785,29 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
         return;
       }
       const nick = String(meta.nick || 'nickname').slice(0, 24);
+      // quem entra refaz a conexão se ela demora (conectarAoHub), então a mesma pessoa pode
+      // chegar com mais de uma: vale a de tentativa mais nova, a outra é fechada sem tirar ninguém da sala
+      const anterior = conexoes.get(conn.peer);
+      if (anterior) {
+        if ((anterior.metadata?.tentativa || 0) > (meta.tentativa || 0)) { conn.close(); return; }
+        conexoes.delete(conn.peer);
+        anterior.close();
+      }
       conexoes.set(conn.peer, conn);
-      membrosHub.set(conn.peer, { id: conn.peer, nick, live: null });
       conn.send({ t: 'bemvindo', host: apelido, versao: VERSAO });
-      enviarTodos({ t: 'sistema', texto: `${nick} entrou na sala.` });
+      if (membrosHub.has(conn.peer)) { publicarMembros(); return; }
+      // quem volta depois de uma troca de anfitrião já traz as transmissões, para a lista não
+      // ficar um instante sem elas (o que fecharia os quadros de quem assiste)
+      const lives = meta.lives || {};
+      membrosHub.set(conn.peer, { id: conn.peer, nick, lives: { tela: limparInfo(lives.tela), camera: limparInfo(lives.camera) } });
+      // `retorno`: estava na sala e está reconectando depois de uma troca de anfitrião
+      if (!meta.retorno) enviarTodos({ t: 'sistema', texto: `${nick} entrou na sala.` });
       if (meta.versao !== VERSAO) mensagem('', `${nick} está usando a v${meta.versao} (sua versão: v${VERSAO}).`, true);
       publicarMembros();
     });
-    conn.on('data', d => processarNoHub(d, conn.peer));
+    conn.on('data', d => { if (conexoes.get(conn.peer) === conn) processarNoHub(d, conn.peer); });
     const saiu = () => {
+      if (conexoes.get(conn.peer) !== conn) return; // conexão antiga, já substituída ou nunca aceita
       const m = membrosHub.get(conn.peer);
       conexoes.delete(conn.peer);
       if (!m) return;
@@ -729,78 +820,124 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     conn.on('error', saiu);
   }
 
-  // ---- todo mundo (inclusive o criador) ----
+  // ---- todo mundo (inclusive o anfitrião) ----
+  const liveDe = (id, fonte) => { const m = membros.find(x => x.id === id); return m && m.lives ? m.lives[fonte] : null; };
   function receber(d) {
     if (!d) return;
     if (d.t === 'chat') mensagem(d.nick, d.texto);
     else if (d.t === 'sistema') mensagem('', d.texto, true);
     else if (d.t === 'membros') {
       membros = Array.isArray(d.lista) ? d.lista : [];
-      if (assistindo && assistindo !== meuId && !membros.some(m => m.id === assistindo && m.live)) {
-        pararDeAssistir('Esta transmissão foi encerrada. Selecione outra na lista.');
+      hostAtual = d.host || '';
+      // lista parcial (logo após troca de anfitrião): só vale para quem já está nela
+      for (const a of [...assistindo.values()]) {
+        if (a.id === meuId || liveDe(a.id, a.fonte)) continue;
+        if (!d.parcial || membros.some(m => m.id === a.id)) pararDeAssistir(a.chave, `A transmissão de ${a.nick} foi encerrada.`);
       }
       renderLista();
     }
-    else if (d.t === 'pedido') atenderPedido(d.de, String(d.nick || 'Alguém').slice(0, 24));
-    else if (d.t === 'cancelar') fecharEspectador(d.de);
-    else if (d.t === 'saiu') fecharEspectador(d.id);
+    else if (d.t === 'pedido') atenderPedido(d.fonte || 'tela', d.de, String(d.nick || 'Alguém').slice(0, 24));
+    else if (d.t === 'cancelar') fecharEspectador(d.fonte || 'tela', d.de);
+    else if (d.t === 'saiu') for (const f of FONTES) fecharEspectador(f, d.id);
   }
 
-  function prepararPeer(p) {
+  // o peer de cada pessoa (ID aleatório): é a identidade na sala e por onde passa o vídeo
+  function abrirPeerMembro(aoAbrir) {
+    status('conectando ao servidor…');
+    const p = new Peer(OPCOES_PEER);
+    peer = p;
     p.on('call', receberChamada);
+    // o servidor público do PeerJS às vezes demora a responder: avisa em vez de parecer travado
+    const timerServidor = setTimeout(() => {
+      if (peer === p && !p.open) status('o servidor está demorando para responder, aguardando…');
+    }, 8000);
+    p.on('open', id => {
+      clearTimeout(timerServidor);
+      if (peer !== p) return;
+      if (meuId) { if (entrou && !migracao) status('na sala'); return; } // reconexão ao servidor
+      meuId = id;
+      aoAbrir();
+    });
     p.on('disconnected', () => {
       // só perdeu o servidor de sinalização; as conexões diretas continuam
       if (peer === p && !p.destroyed) { status('reconectando…'); p.reconnect(); }
     });
-    p.on('open', () => { if (peer === p && entrou) status('na sala'); });
+    p.on('error', e => {
+      if (peer !== p) return;
+      if (e.type === 'peer-unavailable') {
+        // ninguém com o ID da sala: na troca de anfitrião é esperado (ainda ninguém assumiu)
+        if (migracao) agendarMigracao(1500);
+        else if (!entrou && papel === 'membro') sair('Sala não encontrada. Verifique o código e tente novamente.');
+      } else if ((e.type === 'network' || e.type === 'server-error') && !entrou) {
+        sair('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.');
+      } else console.warn(e);
+    });
+  }
+
+  // o peer com o ID fixo da sala: quem consegue abri-lo é o anfitrião
+  function abrirHub(codigo, tentativa) {
+    const emMigracao = !!migracao;
+    if (!emMigracao) status(tentativa ? 'recuperando o código…' : 'abrindo sala…');
+    const p = new Peer(PREFIXO + codigo, OPCOES_PEER);
+    peerHub = p;
+    p.on('open', () => {
+      if (peerHub !== p || papel === 'hub') return;
+      papel = 'hub'; codigoSala = codigo; hostAtual = meuId;
+      conexoes.clear(); membrosHub.clear();
+      membrosHub.set(meuId, { id: meuId, nick: apelido, lives: minhasLives() });
+      if (emMigracao) {
+        migracao = null; clearTimeout(timerMigracao);
+        listaParcialAte = Date.now() + 15000;
+        setTimeout(() => { if (peerHub === p) publicarMembros(); }, 15500);
+        status('na sala');
+        enviarTodos({ t: 'sistema', texto: `${apelido} agora é o anfitrião da sala.` });
+      } else {
+        guardar('prisma-codigo', codigo);
+        entrou = true;
+        entrarNaSala();
+        mensagem('', `Sala ${codigo} criada. Clique no código no topo da página para copiá-lo.`, true);
+      }
+      publicarMembros();
+    });
+    p.on('connection', aceitarConexao);
+    p.on('disconnected', () => { if (peerHub === p && !p.destroyed) p.reconnect(); });
+    p.on('error', e => {
+      if (peerHub !== p) return;
+      if (e.type === 'unavailable-id' && papel !== 'hub') {
+        try { p.destroy(); } catch (x) {}
+        peerHub = null;
+        if (emMigracao) {
+          // outra pessoa já assumiu, ou o servidor ainda segura o ID de quem caiu: volta a
+          // tentar conectar e só tenta assumir de novo daqui a pouco
+          if (migracao) { migracao.tentandoHost = false; migracao.proximaTentativaHost = Date.now() + 6000; agendarMigracao(500); }
+        } else if (tentativa < 4) {
+          // depois de fechar a página, o servidor ainda segura o código por alguns segundos;
+          // não insiste muito porque a sala antiga com esse código pode continuar existindo
+          // (o anfitrião passa para outra pessoa quando você sai)
+          status('aguardando liberação do código…');
+          setTimeout(() => { if (peer && !entrou && !peerHub) abrirHub(codigo, tentativa + 1); }, 3000);
+        } else abrirHub(gerarCodigo(), 0);
+      } else if ((e.type === 'network' || e.type === 'server-error') && !entrou) {
+        sair('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.');
+      } else if (e.type !== 'peer-unavailable') console.warn(e);
+    });
   }
 
   // ---------- criar sala ----------
   $('btnCriar').onclick = () => {
+    if (peer) return;
     erro('');
     apelido = $('apelidoCriar').value.trim();
     if (!apelido) return campoFaltando('apelidoCriar', 'Informe um apelido.');
     guardar('prisma-apelido', apelido);
     senhaSala = $('senhaCriar').value;
-    papel = 'hub';
-    abrirSala(ler('prisma-codigo') || gerarCodigo(), 0);
+    papel = 'criando';
+    abrirPeerMembro(() => abrirHub(ler('prisma-codigo') || gerarCodigo(), 0));
   };
-
-  function abrirSala(codigo, tentativa) {
-    status(tentativa ? 'recuperando o código…' : 'abrindo sala…');
-    const p = new Peer(PREFIXO + codigo);
-    peer = p;
-    prepararPeer(p);
-    p.on('open', id => {
-      if (peer !== p || entrou) return;
-      entrou = true; meuId = id; codigoSala = codigo;
-      guardar('prisma-codigo', codigo);
-      membrosHub.clear();
-      membrosHub.set(meuId, { id: meuId, nick: apelido, live: null });
-      entrarNaSala();
-      mensagem('', `Sala ${codigo} criada. Clique no código no topo da página para copiá-lo.`, true);
-      publicarMembros();
-    });
-    p.on('connection', aceitarConexao);
-    p.on('error', e => {
-      if (peer !== p) return;
-      if (e.type === 'unavailable-id' && !entrou) {
-        // depois de fechar a página, o servidor ainda segura o código por alguns segundos
-        try { p.destroy(); } catch (x) {}
-        if (tentativa < 10) {
-          status('aguardando liberação do código…');
-          setTimeout(() => { if (papel === 'hub' && peer === p) abrirSala(codigo, tentativa + 1); }, 3000);
-        } else if (papel === 'hub') {
-          abrirSala(gerarCodigo(), 0);
-        }
-      } else if (e.type === 'network' || e.type === 'server-error') {
-        if (!entrou) { sair('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'); }
-      } else if (e.type !== 'peer-unavailable') console.warn(e);
-    });
-  }
 
   // ---------- entrar numa sala ----------
   $('btnEntrar').onclick = () => {
+    if (peer) return;
     erro('');
     const codigo = $('codigoSala').value.trim().toUpperCase();
     if (!codigo) return campoFaltando('codigoSala', 'Digite o código da sala.');
@@ -809,37 +946,109 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     guardar('prisma-apelido', apelido);
     papel = 'membro';
     codigoSala = codigo;
-    status('conectando à sala…');
-    const p = new Peer();
-    peer = p;
-    prepararPeer(p);
-    p.on('open', id => {
-      if (peer !== p || conexaoHub) return;
-      meuId = id;
-      conexaoHub = p.connect(PREFIXO + codigo, {
-        reliable: true, metadata: { nick: apelido, senha: $('senhaEntrar').value, versao: VERSAO }
-      });
-      conexaoHub.on('data', d => {
-        if (!d) return;
-        if (d.t === 'recusado') return sair('Não foi possível entrar: ' + d.motivo);
-        if (d.t === 'bemvindo') {
+    senhaSala = $('senhaEntrar').value; // guardada: se eu virar anfitrião, é ela que vale
+    abrirPeerMembro(() => conectarAoHub(1, false));
+  };
+
+  // A conexão de dados com a sala é WebRTC direto: o PeerJS não tem limite de tempo e, quando
+  // a rede demora a achar um caminho (CGNAT, VPN, várias placas de rede), fica esperando sem
+  // avisar. Aqui cada tentativa tem 10 s; se não fechar, refaz com candidatos novos (até 3).
+  // A última fica esperando até o próprio WebRTC desistir. Na troca de anfitrião (`retorno`)
+  // quem controla as novas tentativas é a migração.
+  const TENTATIVAS_HUB = 3;
+  function conectarAoHub(tentativa, retorno) {
+    const p = peer;
+    if (!p) return;
+    if (!retorno) status(tentativa === 1 ? 'conectando à sala…' : `conexão lenta, tentando de novo (${tentativa}/${TENTATIVAS_HUB})…`);
+    const conn = p.connect(PREFIXO + codigoSala, {
+      reliable: true, metadata: { nick: apelido, senha: senhaSala, versao: VERSAO, tentativa, retorno, lives: retorno ? minhasLives() : null }
+    });
+    conexaoHub = conn;
+    hubPronto = false;
+    const atual = () => peer === p && conexaoHub === conn;
+    const timer = setTimeout(() => {
+      if (!atual() || hubPronto) return;
+      const ice = conn.peerConnection ? conn.peerConnection.iceConnectionState : 'sem conexão';
+      console.warn(`entrada na sala: tentativa ${tentativa} sem resposta em 10 s (ICE: ${ice})`);
+      if (retorno || tentativa < TENTATIVAS_HUB) {
+        conexaoHub = null; // antes do close, para o handler de close não tratar como saída
+        try { conn.close(); } catch (e) {}
+        if (retorno) agendarMigracao(500);
+        else conectarAoHub(tentativa + 1, false);
+      } else {
+        status('a conexão direta com a sala está demorando (rede com CGNAT, VPN ou firewall?), aguardando…');
+      }
+    }, 10000);
+    conn.on('data', d => {
+      if (!atual() || !d) return;
+      if (d.t === 'recusado') return sair('Não foi possível entrar: ' + d.motivo);
+      if (d.t === 'bemvindo') {
+        clearTimeout(timer);
+        hubPronto = true;
+        if (entrou) {
+          // reconectado ao novo anfitrião: reapresenta minhas transmissões
+          migracao = null; clearTimeout(timerMigracao);
+          status('na sala');
+          mensagem('', `Sala reorganizada: ${d.host} agora é o anfitrião.`, true);
+          for (const f of FONTES) if (transmissoes[f]) informarLive(f, true);
+        } else {
           entrou = true;
           entrarNaSala();
           mensagem('', `Você entrou na sala de ${d.host}.`, true);
           if (d.versao !== VERSAO) mensagem('', `A sala está na versão v${d.versao || '?'} e você na v${VERSAO}. Recomendamos atualizar o aplicativo.`, true);
-          return;
         }
-        receber(d);
-      });
-      conexaoHub.on('close', () => { if (peer === p) sair(entrou ? 'A sala foi encerrada pelo anfitrião.' : 'Não foi possível entrar na sala.'); });
+        return;
+      }
+      receber(d);
     });
-    p.on('error', e => {
-      if (peer !== p) return;
-      if (e.type === 'peer-unavailable' && !entrou) sair('Sala não encontrada. Verifique o código e tente novamente.');
-      else if ((e.type === 'network' || e.type === 'server-error') && !entrou) sair('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.');
-      else if (e.type !== 'peer-unavailable') console.warn(e);
+    conn.on('close', () => {
+      clearTimeout(timer);
+      if (!atual()) return;
+      conexaoHub = null;
+      if (hubPronto) { hubPronto = false; iniciarMigracao(); } // o anfitrião saiu ou caiu
+      else if (retorno) agendarMigracao(1000);
+      else sair('Não foi possível entrar na sala.');
     });
-  };
+  }
+
+  // ---------- MIGRAÇÃO: o anfitrião saiu, outra pessoa assume ----------
+  // Todo mundo tem a mesma lista de membros, na ordem de entrada. Quem entrou primeiro (fora
+  // o anfitrião que saiu) tenta abrir o peer com o ID da sala na hora; os outros tentam se
+  // reconectar a ele. Se ninguém assumiu em 12 s por posição na fila (o escolhido também
+  // saiu, por exemplo), o próximo tenta. O servidor do PeerJS garante que só um consegue o ID.
+  let migracao = null, timerMigracao = 0;
+  function iniciarMigracao() {
+    const antigo = hostAtual;
+    const fila = membros.map(m => m.id).filter(id => id !== antigo);
+    let posicao = fila.indexOf(meuId);
+    if (posicao < 0) posicao = fila.length;
+    migracao = { inicio: Date.now(), posicao, tentandoHost: false, proximaTentativaHost: 0 };
+    papel = 'membro';
+    const quem = (membros.find(m => m.id === antigo) || {}).nick || 'O anfitrião';
+    mensagem('', `${quem} saiu da sala. Reorganizando a sala…`, true);
+    status('reorganizando a sala…');
+    for (const f of FONTES) fecharEspectador(f, antigo, true);
+    for (const a of [...assistindo.values()]) if (a.id === antigo) pararDeAssistir(a.chave);
+    membros = membros.filter(m => m.id !== antigo);
+    hostAtual = '';
+    atualizarMinhaLive();
+    agendarMigracao(posicao === 0 ? 0 : 1500);
+  }
+  function agendarMigracao(ms) {
+    clearTimeout(timerMigracao);
+    timerMigracao = setTimeout(passoMigracao, ms);
+  }
+  function passoMigracao() {
+    if (!migracao || !peer) return;
+    const passou = Date.now() - migracao.inicio;
+    if (passou > 90000) return sair('Não foi possível reorganizar a sala depois que o anfitrião saiu.');
+    if (migracao.tentandoHost) return;
+    if (passou >= migracao.posicao * 12000 && Date.now() >= migracao.proximaTentativaHost) {
+      migracao.tentandoHost = true;
+      return abrirHub(codigoSala, 0);
+    }
+    conectarAoHub(1, true);
+  }
 
   function entrarNaSala() {
     $('inicio').hidden = true;
@@ -854,9 +1063,8 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     $('avatarEu').textContent = [...(apelido || '?')][0];
     $('avatarEu').title = apelido;
     $('avatarEu').hidden = false;
-    aviso('Selecione uma transmissão na lista para assistir.');
     inicioSala = Math.floor(Date.now() / 1000);
-    renderLista();
+    organizarPalco();
     atualizarMinhaLive();
   }
 
@@ -870,7 +1078,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     }
   };
 
-  // o palco mostra uma coisa por vez: o vídeo (aba Assistir) ou as opções de transmitir (aba Minha transmissão)
+  // o palco mostra uma coisa por vez: os vídeos (aba Assistir) ou as opções de transmitir (aba Minha transmissão)
   function mostrarAba(qual) {
     const transmitir = qual === 'transmitir';
     $('painelAssistir').hidden = transmitir;
@@ -910,27 +1118,31 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
   };
 
   // ---------- lista de transmissões ----------
+  // cada pessoa pode ter até duas: a tela e a câmera, que aparecem como itens separados
   function renderLista() {
     const box = $('lista');
     box.textContent = '';
-    const lives = membros.filter(m => m.live);
+    const lives = [];
+    for (const m of membros) for (const f of FONTES) if (m.lives && m.lives[f]) lives.push({ m, fonte: f, info: m.lives[f] });
     if (!lives.length) {
       const p = document.createElement('p');
       p.className = 'dica';
       p.textContent = 'Nenhuma transmissão ativa no momento. Para iniciar a sua, acesse "Minha transmissão".';
       box.appendChild(p);
     }
-    for (const m of lives) {
+    for (const { m, fonte, info } of lives) {
+      const chave = m.id + '|' + fonte;
+      const vendo = assistindo.has(chave);
       const item = document.createElement('div');
-      item.className = 'live-item' + (assistindo === m.id ? ' ativo' : '');
-      // miniatura: não temos imagem da tela, então vai a inicial do apelido com a etiqueta LIVE
+      item.className = 'live-item' + (vendo ? ' ativo' : '');
+      // miniatura: não temos imagem da tela, então vai a inicial do apelido com a etiqueta LIVE/CAM
       const mini = document.createElement('div');
       mini.className = 'miniatura';
       mini.setAttribute('aria-hidden', 'true');
       mini.textContent = [...(m.nick || '?')][0];
       const tag = document.createElement('span');
       tag.className = 'tag';
-      tag.textContent = 'LIVE';
+      tag.textContent = fonte === 'camera' ? 'CAM' : 'LIVE';
       mini.appendChild(tag);
       const texto = document.createElement('div');
       texto.className = 'live-texto';
@@ -938,180 +1150,270 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       nome.textContent = m.nick + (m.id === meuId ? ' (você)' : '');
       const det = document.createElement('span');
       det.className = 'contagem';
-      det.textContent = `${m.live.altura}p ${m.live.fps}fps · 👁 ${m.live.n}`;
-      det.title = m.live.n === 1 ? '1 assistindo' : m.live.n + ' assistindo';
+      det.textContent = `${NOME_FONTE[fonte]} · ${info.altura}p ${info.fps}fps · 👁 ${info.n}`;
+      det.title = info.n === 1 ? '1 assistindo' : info.n + ' assistindo';
       const btn = document.createElement('button');
-      if (assistindo === m.id) { btn.textContent = 'Assistindo'; btn.disabled = true; }
+      if (vendo) btn.textContent = 'Fechar';
       else { btn.textContent = m.id === meuId ? 'Ver prévia' : 'Assistir'; btn.className = 'primario'; }
-      btn.onclick = () => assistir(m.id);
+      btn.onclick = () => vendo ? pararDeAssistir(chave) : assistir(m.id, fonte);
       texto.append(nome, det, btn);
       item.append(mini, texto);
       box.appendChild(item);
     }
-    $('naSala').textContent = membros.length ? 'Participantes: ' + membros.map(m => m.nick).join(', ') : '';
+    $('naSala').textContent = membros.length
+      ? 'Participantes: ' + membros.map(m => m.nick + (m.id === hostAtual ? ' (anfitrião)' : '')).join(', ') : '';
     $('contagemChat').textContent = membros.length === 1 ? '1 participante' : membros.length + ' participantes';
-    $('logo').classList.toggle('ao-vivo', !!stream || !!assistindo);
-    const alvo = assistindo && membros.find(m => m.id === assistindo && m.live);
-    $('olhoTela').hidden = !alvo;
-    if (alvo) $('olhoTxt').textContent = alvo.live.n;
+    $('logo').classList.toggle('ao-vivo', transmitindo() || assistindo.size > 0);
+    for (const a of assistindo.values()) {
+      const info = liveDe(a.id, a.fonte);
+      a.el.olho.hidden = !info;
+      if (info) a.el.olhoN.textContent = info.n;
+    }
     atualizarPresenca();
   }
 
   // ======================================================================
-  // ASSISTIR
+  // ASSISTIR: várias transmissões ao mesmo tempo, cada uma num quadro do palco
+  // com volume, tela cheia e botão de fechar próprios
   // ======================================================================
-  function assistir(id) {
+  const MAX_ASSISTINDO = 6;
+  let volumePadrao = Math.min(100, Math.max(0, +(ler('prisma-volume') || 100)));
+  let layout = ler('prisma-layout') === 'destaque' ? 'destaque' : 'grade';
+  let principal = null; // no layout "destaque": o quadro grande (e o único com som)
+
+  function assistir(id, fonte) {
     const m = membros.find(x => x.id === id);
-    if (!m || !m.live) return;
-    pararDeAssistir('', true);
+    if (!m || !m.lives || !m.lives[fonte]) return;
+    const chave = id + '|' + fonte;
     mostrarAba('assistir');
-    assistindo = id;
-    $('selo').textContent = 'AO VIVO · ' + m.nick;
-    $('btnPararAssistir').hidden = false;
-    if (id === meuId) {
-      // prévia da própria tela: sem rede, sempre mudo para não dar eco
-      $('video').srcObject = stream;
-      aviso('');
-      $('selo').hidden = false;
-      aplicarSom();
-      $('video').play().catch(() => {});
-    } else {
-      aviso('Conectando à transmissão de ' + m.nick + '…');
-      enviarHub({ t: 'assistir', alvo: id });
+    if (assistindo.has(chave)) return;
+    if (assistindo.size >= MAX_ASSISTINDO) {
+      mensagem('', `É possível assistir até ${MAX_ASSISTINDO} transmissões ao mesmo tempo. Feche uma para abrir outra.`, true);
+      return;
     }
-    mostrarInfoAssistir();
+    const a = { chave, id, fonte, nick: m.nick, call: null, volume: volumePadrao, mudo: false, ultimoRecebido: null, religacoes: 0 };
+    a.el = criarQuadro(a);
+    assistindo.set(chave, a);
+    if (id === meuId) {
+      // prévia da própria transmissão: sem rede, sempre muda para não dar eco
+      a.el.video.srcObject = transmissoes[fonte] ? transmissoes[fonte].stream : null;
+      a.el.aviso.hidden = true;
+      a.el.video.play().catch(() => {});
+    } else {
+      a.el.aviso.textContent = `Conectando à transmissão de ${m.nick}…`;
+      enviarHub({ t: 'assistir', alvo: id, fonte });
+    }
+    organizarPalco();
     renderLista();
   }
 
   function receberChamada(call) {
-    if (call.peer !== assistindo || assistindo === meuId) { try { call.close(); } catch (e) {} return; }
-    const antiga = chamadaAssistida;
-    chamadaAssistida = call;
+    const fonte = (call.metadata && call.metadata.fonte) || 'tela';
+    const a = assistindo.get(call.peer + '|' + fonte);
+    if (!a || a.id === meuId) { try { call.close(); } catch (e) {} return; }
+    const antiga = a.call;
+    a.call = call;
     if (antiga) { try { antiga.close(); } catch (e) {} }
     call.answer(undefined, { sdpTransform: sdpRecebe });
     call.on('stream', s => {
-      if (chamadaAssistida !== call) return;
-      const v = $('video');
+      if (a.call !== call) return;
+      const v = a.el.video;
       // o evento pode disparar 1x por faixa (vídeo e depois áudio); só troca se for outro stream
       if (v.srcObject !== s) {
         v.srcObject = s;
-        aplicarSom();
+        aplicarSom(a);
         v.play().catch(() => {
-          mudo = true; aplicarSom(); v.play().catch(() => {});
+          a.mudo = true; aplicarSom(a); v.play().catch(() => {});
           mensagem('', 'O navegador bloqueou a reprodução automática do áudio. Clique no ícone de volume para ativar.', true);
         });
       }
-      aviso('');
-      $('selo').hidden = false;
+      a.el.aviso.hidden = true;
+      a.religacoes = 0;
     });
-    call.on('close', () => { if (chamadaAssistida === call) aviso('A transmissão foi interrompida. Clique em Assistir para reconectar.'); });
-  }
-
-  function pararDeAssistir(motivo, trocando) {
-    if (assistindo && assistindo !== meuId) enviarHub({ t: 'parar', alvo: assistindo });
-    if (chamadaAssistida) { const c = chamadaAssistida; chamadaAssistida = null; try { c.close(); } catch (e) {} }
-    assistindo = null;
-    ultimoRecebido = null;
-    clearInterval(timerAssistir);
-    $('video').srcObject = null;
-    $('selo').hidden = true;
-    $('info').textContent = '';
-    $('btnPararAssistir').hidden = true;
-    if (!trocando) { aviso(motivo || 'Selecione uma transmissão na lista para assistir.'); renderLista(); }
-  }
-  $('btnPararAssistir').onclick = () => pararDeAssistir('');
-
-  let ultimoRecebido = null;
-  function mostrarInfoAssistir() {
-    clearInterval(timerAssistir);
-    timerAssistir = setInterval(async () => {
-      const v = $('video');
-      if (assistindo === meuId) {
-        if (stream) { const s = stream.getVideoTracks()[0].getSettings(); $('info').textContent = `prévia · ${s.width}×${s.height} ${Math.round(s.frameRate || 0)}fps`; }
-        return;
+    call.on('close', () => {
+      if (a.call !== call || assistindo.get(a.chave) !== a) return;
+      a.call = null;
+      a.el.aviso.hidden = false;
+      // a transmissão continua na lista: pede de novo (quem transmite pode ter refeito a chamada)
+      if (liveDe(a.id, a.fonte) && a.religacoes < 3) {
+        a.religacoes++;
+        a.el.aviso.textContent = 'Reconectando…';
+        setTimeout(() => { if (assistindo.get(a.chave) === a && !a.call) enviarHub({ t: 'assistir', alvo: a.id, fonte: a.fonte }); }, 3000);
+      } else {
+        a.el.aviso.textContent = 'A transmissão foi interrompida. Feche este quadro e clique em Assistir para tentar de novo.';
       }
-      const pc = chamadaAssistida && chamadaAssistida.peerConnection;
-      if (!pc) return;
+    });
+  }
+
+  function pararDeAssistir(chave, motivo) {
+    const a = assistindo.get(chave);
+    if (!a) return;
+    assistindo.delete(chave);
+    if (a.id !== meuId) enviarHub({ t: 'parar', alvo: a.id, fonte: a.fonte });
+    if (a.call) { const c = a.call; a.call = null; try { c.close(); } catch (e) {} }
+    if (document.fullscreenElement === a.el.quadro) document.exitFullscreen().catch(() => {});
+    a.el.video.srcObject = null;
+    a.el.quadro.remove();
+    if (motivo) mensagem('', motivo, true);
+    organizarPalco();
+    renderLista();
+  }
+
+  // ---------- quadros do palco ----------
+  function criarQuadro(a) {
+    const quadro = $('modeloQuadro').content.firstElementChild.cloneNode(true);
+    const q = s => quadro.querySelector(s);
+    const el = {
+      quadro, video: q('video'), aviso: q('.aviso'), selo: q('.selo'), olho: q('.olho'), olhoN: q('.olho-n'),
+      mudo: q('.mudo'), volume: q('.volume'), volumeTxt: q('.volume-txt'), info: q('.info'), cheia: q('.btn-cheia'), fechar: q('.fechar')
+    };
+    el.selo.textContent = 'AO VIVO · ' + a.nick + (a.fonte === 'camera' ? ' · Câmera' : '');
+    el.volume.addEventListener('input', () => {
+      a.volume = +el.volume.value;
+      a.mudo = false;
+      volumePadrao = a.volume;
+      guardar('prisma-volume', a.volume);
+      aplicarSom(a);
+      el.video.play().catch(() => {});
+    });
+    el.mudo.onclick = () => {
+      // no destaque só o quadro grande tem som: clicar no som de outro o traz para o destaque
+      if (silenciadoPeloLayout(a)) return definirPrincipal(a.chave);
+      if (el.video.muted) { a.mudo = false; if (a.volume === 0) a.volume = 50; } else a.mudo = true;
+      aplicarSom(a);
+      el.video.play().catch(() => {});
+      const s = el.video.srcObject;
+      if (!a.mudo && s && a.id !== meuId && !s.getAudioTracks().length) {
+        mensagem('', `A transmissão de ${a.nick} não possui áudio.` + (a.fonte === 'tela' ? ' O transmissor precisa ativar "Compartilhar áudio do sistema".' : ''), true);
+      }
+    };
+    el.cheia.onclick = () => alternarTelaCheia(quadro);
+    el.fechar.onclick = () => pararDeAssistir(a.chave);
+    el.video.addEventListener('dblclick', () => alternarTelaCheia(quadro));
+    el.video.addEventListener('click', () => { if (layout === 'destaque' && principal !== a.chave) definirPrincipal(a.chave); });
+    for (const ev of ['mousemove', 'pointerdown']) quadro.addEventListener(ev, () => mostrarPlayer(quadro));
+    quadro.addEventListener('mouseleave', () => { if (!quadro.classList.contains('cheia')) esconderPlayer(quadro); });
+    return el;
+  }
+
+  const silenciadoPeloLayout = a => layout === 'destaque' && assistindo.size > 1 && principal !== a.chave;
+  function aplicarSom(a) {
+    const v = a.el.video;
+    const proprio = a.id === meuId, peloLayout = silenciadoPeloLayout(a);
+    v.volume = a.volume / 100;
+    v.muted = proprio || a.mudo || a.volume === 0 || peloLayout;
+    a.el.volume.value = a.volume;
+    a.el.volume.disabled = proprio;
+    a.el.volume.style.setProperty('--nivel', a.volume + '%');
+    a.el.volumeTxt.textContent = proprio ? 'prévia' : peloLayout ? 'mudo' : a.volume + '%';
+    a.el.mudo.textContent = v.muted ? '🔇' : a.volume < 50 ? '🔉' : '🔊';
+    a.el.mudo.setAttribute('aria-label', peloLayout ? 'Ouvir esta transmissão' : v.muted ? 'Ativar som' : 'Silenciar');
+  }
+
+  // grade: todos do mesmo tamanho. destaque: o principal grande e os outros em miniaturas embaixo.
+  // Só move um quadro de lugar quando ele muda de contêiner: mover o elemento em tela cheia a tiraria dela.
+  function organizarPalco() {
+    const n = assistindo.size;
+    $('telaVazia').hidden = n > 0;
+    $('tituloPalco').textContent = !n ? 'Assistir' : n === 1 ? 'Assistindo 1 transmissão' : `Assistindo ${n} transmissões`;
+    if (principal && !assistindo.has(principal)) principal = null;
+    if (!principal && n) principal = assistindo.keys().next().value;
+    const grade = $('grade'), faixa = $('miniaturas');
+    grade.className = 'grade em-' + layout;
+    grade.style.setProperty('--cols', n <= 1 ? 1 : n <= 4 ? 2 : 3);
+    for (const a of assistindo.values()) {
+      const destino = layout === 'destaque' && a.chave !== principal ? faixa : grade;
+      if (a.el.quadro.parentNode !== destino) {
+        if (destino === grade) grade.insertBefore(a.el.quadro, faixa); else faixa.appendChild(a.el.quadro);
+        a.el.video.play().catch(() => {});
+      }
+      aplicarSom(a);
+    }
+    faixa.hidden = layout !== 'destaque' || n < 2;
+  }
+  function definirPrincipal(chave) {
+    principal = chave;
+    organizarPalco();
+  }
+
+  // menu de três pontinhos: como organizar o palco
+  function atualizarMenuLayout() {
+    for (const b of $('menuLayout').querySelectorAll('[data-layout]')) b.setAttribute('aria-checked', String(b.dataset.layout === layout));
+  }
+  function fecharMenuLayout() { $('menuLayout').hidden = true; $('btnLayout').setAttribute('aria-expanded', 'false'); }
+  $('btnLayout').onclick = ev => {
+    ev.stopPropagation();
+    const abrir = $('menuLayout').hidden;
+    $('menuLayout').hidden = !abrir;
+    $('btnLayout').setAttribute('aria-expanded', String(abrir));
+    if (abrir) $('menuLayout').querySelector('[aria-checked="true"]').focus();
+  };
+  for (const b of $('menuLayout').querySelectorAll('[data-layout]')) {
+    b.onclick = () => {
+      layout = b.dataset.layout;
+      guardar('prisma-layout', layout);
+      atualizarMenuLayout();
+      organizarPalco();
+      fecharMenuLayout();
+    };
+  }
+  document.addEventListener('click', ev => { if (!$('menuLayout').hidden && !$('menuLayout').contains(ev.target)) fecharMenuLayout(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !$('menuLayout').hidden) { fecharMenuLayout(); $('btnLayout').focus(); } });
+  atualizarMenuLayout();
+
+  // informação de cada quadro (resolução, fps, bitrate recebido), a cada 2 s
+  setInterval(async () => {
+    for (const a of [...assistindo.values()]) {
+      const v = a.el.video;
+      if (a.id === meuId) {
+        const t = transmissoes[a.fonte];
+        if (t) { const s = t.stream.getVideoTracks()[0].getSettings(); a.el.info.textContent = `prévia · ${s.width}×${s.height} ${Math.round(s.frameRate || 0)}fps`; }
+        continue;
+      }
+      const pc = a.call && a.call.peerConnection;
+      if (!pc) continue;
       let fps = 0, kbps = '';
       (await pc.getStats()).forEach(r => {
         if (r.type === 'inbound-rtp' && r.kind === 'video') {
           fps = r.framesPerSecond || 0;
-          if (ultimoRecebido && r.bytesReceived >= ultimoRecebido.b) {
-            kbps = mbps((r.bytesReceived - ultimoRecebido.b) * 8 / (r.timestamp - ultimoRecebido.t));
+          if (a.ultimoRecebido && r.bytesReceived >= a.ultimoRecebido.b) {
+            kbps = mbps((r.bytesReceived - a.ultimoRecebido.b) * 8 / (r.timestamp - a.ultimoRecebido.t));
           }
-          ultimoRecebido = { t: r.timestamp, b: r.bytesReceived };
+          a.ultimoRecebido = { t: r.timestamp, b: r.bytesReceived };
         }
       });
       const audio = v.srcObject && v.srcObject.getAudioTracks().length ? 'com áudio' : 'sem áudio';
-      $('info').textContent = `${v.videoWidth}×${v.videoHeight} ${Math.round(fps)}fps${kbps ? ' · ' + kbps : ''} · ${audio}`;
-    }, 2000);
-  }
-
-  // ---------- volume ----------
-  let volume = Math.min(100, Math.max(0, +(ler('prisma-volume') || 100))), mudo = false;
-  function aplicarSom() {
-    const v = $('video');
-    const proprio = assistindo === meuId;
-    v.volume = volume / 100;
-    v.muted = proprio || mudo || volume === 0;
-    // a barra de baixo e o player da tela cheia mostram o mesmo estado
-    for (const [slider, txt, botao] of [['volume', 'volumeTxt', 'btnMudo'], ['volumeCheia', 'volumeTxtCheia', 'btnMudoCheia']]) {
-      $(slider).value = volume;
-      $(slider).disabled = proprio;
-      $(slider).style.setProperty('--nivel', volume + '%');
-      $(txt).textContent = proprio ? 'prévia' : volume + '%';
-      $(botao).textContent = v.muted ? '🔇' : volume < 50 ? '🔉' : '🔊';
-      $(botao).setAttribute('aria-label', v.muted ? 'Ativar som' : 'Silenciar');
+      a.el.info.textContent = `${v.videoWidth}×${v.videoHeight} ${Math.round(fps)}fps${kbps ? ' · ' + kbps : ''} · ${audio}`;
     }
-  }
-  for (const id of ['volume', 'volumeCheia']) $(id).addEventListener('input', () => {
-    volume = +$(id).value;
-    mudo = false;
-    guardar('prisma-volume', volume);
-    aplicarSom();
-    $('video').play().catch(() => {});
-  });
-  $('btnMudo').onclick = $('btnMudoCheia').onclick = () => {
-    if ($('video').muted) { mudo = false; if (volume === 0) volume = 50; } else mudo = true;
-    aplicarSom();
-    $('video').play().catch(() => {});
-    const s = $('video').srcObject;
-    if (!mudo && s && assistindo !== meuId && !s.getAudioTracks().length) {
-      mensagem('', 'Esta transmissão não possui áudio. O transmissor precisa ativar "Compartilhar áudio do sistema".', true);
-    }
-  };
-  aplicarSom();
+  }, 2000);
 
   // ---------- tela cheia ----------
-  // o elemento em tela cheia é a #tela (não o <video>), assim o player próprio aparece por cima
-  // em vez dos controles nativos do navegador
-  function alternarTelaCheia() {
-    const t = $('tela');
+  // o elemento em tela cheia é o quadro (não o <video>), assim o player próprio aparece por
+  // cima em vez dos controles nativos do navegador
+  function alternarTelaCheia(quadro) {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else (t.requestFullscreen ? t.requestFullscreen() : Promise.reject()).catch(() => {});
+    else (quadro.requestFullscreen ? quadro.requestFullscreen() : Promise.reject()).catch(() => {});
   }
-  $('btnTelaCheia').onclick = $('btnSairCheia').onclick = alternarTelaCheia;
-  $('video').addEventListener('dblclick', alternarTelaCheia);
-
-  // o player aparece ao mexer o mouse ou tocar na tela e some depois de 2,5 s parado
+  // o player aparece ao mexer o mouse ou tocar no quadro e some depois de 2,5 s parado
   // (fica visível enquanto o mouse estiver em cima dele)
-  let timerPlayer = 0;
-  function mostrarPlayer() {
-    const t = $('tela');
-    if (!t.classList.contains('cheia')) return;
-    t.classList.add('ativo');
-    clearTimeout(timerPlayer);
-    timerPlayer = setTimeout(() => {
-      if (!$('player').matches(':hover')) t.classList.remove('ativo');
-      else mostrarPlayer();
-    }, 2500);
+  const timersPlayer = new WeakMap();
+  function mostrarPlayer(quadro) {
+    quadro.classList.add('ativo');
+    clearTimeout(timersPlayer.get(quadro));
+    timersPlayer.set(quadro, setTimeout(() => {
+      if (quadro.querySelector('.player').matches(':hover')) mostrarPlayer(quadro);
+      else quadro.classList.remove('ativo');
+    }, 2500));
   }
-  for (const ev of ['mousemove', 'pointerdown', 'keydown']) $('tela').addEventListener(ev, mostrarPlayer);
+  function esconderPlayer(quadro) { clearTimeout(timersPlayer.get(quadro)); quadro.classList.remove('ativo'); }
   document.addEventListener('fullscreenchange', () => {
-    const cheia = document.fullscreenElement === $('tela');
-    $('tela').classList.toggle('cheia', cheia);
-    if (cheia) mostrarPlayer();
-    else { clearTimeout(timerPlayer); $('tela').classList.remove('ativo'); }
+    for (const a of assistindo.values()) {
+      const cheia = document.fullscreenElement === a.el.quadro;
+      a.el.quadro.classList.toggle('cheia', cheia);
+      a.el.cheia.setAttribute('aria-label', cheia ? 'Sair da tela cheia' : 'Tela cheia');
+      a.el.cheia.title = cheia ? 'Sair da tela cheia (Esc)' : 'Tela cheia';
+      if (cheia) mostrarPlayer(a.el.quadro); else esconderPlayer(a.el.quadro);
+    }
   });
 
   // ======================================================================
@@ -1216,15 +1518,17 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     if (!emTauri || !DISCORD_CLIENT_ID) return;
     const invoke = window.__TAURI__.core.invoke;
     if (!entrou || !$('presencaDiscord').checked) { invoke('presenca_limpar').catch(() => {}); return; }
-    const alvo = assistindo && assistindo !== meuId ? membros.find(m => m.id === assistindo) : null;
-    const detalhes = stream
-      ? `Transmitindo · ${espectadores.size} assistindo`
-      : alvo ? `Assistindo ${alvo.nick}` : 'Na sala';
-    const n = membros.length || 1;
+    const vendo = [...assistindo.values()].filter(a => a.id !== meuId);
+    const n = totalEspectadores();
+    const detalhes = transmitindo()
+      ? `Transmitindo ${descreverMinhasLives()} · ${n} assistindo`
+      : vendo.length === 1 ? `Assistindo ${vendo[0].nick}`
+      : vendo.length ? `Assistindo ${vendo.length} transmissões` : 'Na sala';
+    const total = membros.length || 1;
     const atividade = {
       clientId: DISCORD_CLIENT_ID,
       detalhes,
-      estado: `Sala ${codigoSala} · ${n} ${n === 1 ? 'participante' : 'participantes'}`,
+      estado: `Sala ${codigoSala} · ${total} ${total === 1 ? 'participante' : 'participantes'}`,
       inicio: inicioSala || null,
       imagem: 'logo',
       textoImagem: `PrismaStream v${VERSAO}`,
@@ -1242,179 +1546,299 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     };
   }
 
-  async function capturar() {
+  // ---------- minhas transmissões: tela e câmera, independentes ----------
+  // Cada uma tem o próprio stream, a própria config e os próprios espectadores; quem assiste
+  // as duas recebe duas chamadas (o upload dobra).
+  const transmitindo = () => !!(transmissoes.tela || transmissoes.camera);
+  const totalEspectadores = () => FONTES.reduce((s, f) => s + (transmissoes[f] ? transmissoes[f].espectadores.size : 0), 0);
+  const descreverMinhasLives = () => transmissoes.tela && transmissoes.camera ? 'tela e câmera' : transmissoes.camera ? 'câmera' : 'tela';
+  function infoDaLive(f) {
+    const t = transmissoes[f];
+    if (!t) return null;
+    const s = t.stream.getVideoTracks()[0].getSettings();
+    return { altura: s.height || t.config.altura, fps: t.config.fps, n: t.espectadores.size };
+  }
+  const minhasLives = () => ({ tela: infoDaLive('tela'), camera: infoDaLive('camera') });
+
+  async function capturarTela(cfg) {
     const usandoAudioNativo = emTauri && !!faixaAudioNativa;
     const s = await navigator.mediaDevices.getDisplayMedia({
-      video: restricoesVideo(config),
+      video: restricoesVideo(cfg),
       audio: usandoAudioNativo ? false : { echoCancellation: false, noiseSuppression: false, autoGainControl: false,
                channelCount: 2, sampleRate: 48000 },
       systemAudio: usandoAudioNativo ? undefined : 'include', selfBrowserSurface: 'exclude', surfaceSwitching: 'include'
     });
     const vt = s.getVideoTracks()[0];
-    vt.applyConstraints(restricoesVideo(config)).catch(() => {});
-    if ('contentHint' in vt) vt.contentHint = config.prioridade === 'fluidez' ? 'motion' : 'detail';
+    vt.applyConstraints(restricoesVideo(cfg)).catch(() => {});
+    if ('contentHint' in vt) vt.contentHint = cfg.prioridade === 'fluidez' ? 'motion' : 'detail';
     if (usandoAudioNativo) s.addTrack(faixaAudioNativa);
     const at = s.getAudioTracks()[0];
     if (at && 'contentHint' in at) at.contentHint = 'music';
-    vt.onended = () => pararTransmissao('Transmissão encerrada.');
+    vt.onended = () => pararTransmissao('tela', 'Transmissão da tela encerrada.');
     return s;
   }
 
+  async function capturarCamera(cfg) {
+    const id = $('camera').value;
+    const s = await navigator.mediaDevices.getUserMedia({
+      video: { ...restricoesVideo(cfg), ...(id ? { deviceId: { exact: id } } : {}) },
+      audio: $('microfone').checked ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true } : false
+    });
+    const vt = s.getVideoTracks()[0];
+    if ('contentHint' in vt) vt.contentHint = 'motion';
+    const at = s.getAudioTracks()[0];
+    if (at && 'contentHint' in at) at.contentHint = 'speech';
+    vt.onended = () => pararTransmissao('camera', 'A câmera foi desconectada.');
+    return s;
+  }
+
+  // lista de câmeras: sem permissão o navegador não dá nomes nem IDs, aí fica só "Câmera padrão"
+  async function atualizarCameras() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    const todas = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    const sel = $('camera'), atual = sel.value || ler('prisma-camera');
+    sel.textContent = '';
+    const padrao = document.createElement('option');
+    padrao.value = ''; padrao.textContent = 'Câmera padrão';
+    sel.appendChild(padrao);
+    todas.filter(d => d.deviceId).forEach((d, i) => {
+      const o = document.createElement('option');
+      o.value = d.deviceId;
+      o.textContent = d.label || `Câmera ${i + 1}`;
+      sel.appendChild(o);
+    });
+    if ([...sel.options].some(o => o.value === atual)) sel.value = atual;
+    $('btnCamera').disabled = !todas.length;
+    if (!transmissoes.camera) $('infoCamera').textContent = todas.length ? '' : 'Nenhuma câmera encontrada.';
+  }
+  atualizarCameras().catch(() => {});
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener('devicechange', () => atualizarCameras().catch(() => {}));
+  }
+  $('microfone').checked = ler('prisma-microfone') !== 'nao';
+
   function avisarSemAudio() {
-    if (stream && !stream.getAudioTracks().length) {
+    const t = transmissoes.tela;
+    if (t && !t.stream.getAudioTracks().length) {
       mensagem('', 'Sua transmissão está sem áudio. Para incluí-lo, clique em "Trocar tela ou janela" e ative "Compartilhar áudio do sistema" (disponível ao compartilhar a tela inteira ou uma aba do navegador; janelas individuais não incluem áudio).', true);
     }
   }
 
-  function informarLive() {
-    enviarHub({ t: 'live', info: stream ? { altura: config.altura, fps: config.fps, n: espectadores.size } : null });
+  function informarLive(fonte, retomando) {
+    enviarHub({ t: 'live', fonte, info: infoDaLive(fonte), retomando: !!retomando });
   }
 
   function atualizarMinhaLive() {
-    const ligada = !!stream;
-    $('btnTransmitir').hidden = ligada;
-    $('btnTrocarTela').hidden = !ligada;
-    $('btnPararLive').hidden = !ligada;
-    $('estadoLive').textContent = ligada
-      ? (espectadores.size === 1 ? '● AO VIVO · 1 assistindo' : `● AO VIVO · ${espectadores.size} assistindo`)
-      : 'inativa';
+    const tela = !!transmissoes.tela, cam = !!transmissoes.camera, ligada = tela || cam;
+    const n = totalEspectadores();
+    const assistindoTxt = n === 1 ? '1 assistindo' : `${n} assistindo`;
+    $('btnTransmitir').hidden = tela;
+    $('btnTrocarTela').hidden = !tela;
+    $('btnPararLive').hidden = !tela;
+    $('btnCamera').hidden = cam;
+    $('btnPararCamera').hidden = !cam;
+    $('estadoLive').textContent = ligada ? `● AO VIVO · ${descreverMinhasLives()} · ${assistindoTxt}` : 'inativa';
     $('estadoLive').classList.toggle('no-ar', ligada);
-    // deixa bem claro, de qualquer aba, que a sua tela está sendo transmitida
+    // deixa bem claro, de qualquer aba, que você está transmitindo
     $('seloTransmitindo').hidden = !ligada;
-    $('seloTransmitindoTxt').textContent = ligada ? ` · ${espectadores.size} assistindo` : '';
+    $('seloTransmitindoTxt').textContent = ligada ? ` · ${assistindoTxt}` : '';
     $('pontoAba').hidden = !ligada;
     $('painelMinhaLive').classList.toggle('no-ar', ligada);
     document.title = ligada ? '🔴 Transmitindo · PrismaStream' : 'PrismaStream';
-    if (!ligada) $('infoLive').textContent = '';
-    if (emTauri) { $('processoExcluir').disabled = ligada; $('btnAtualizarProcessos').disabled = ligada; }
+    if (!tela) $('infoLive').textContent = '';
+    if (!cam && $('infoCamera').textContent !== 'Nenhuma câmera encontrada.') $('infoCamera').textContent = '';
+    if (emTauri) { $('processoExcluir').disabled = tela; $('btnAtualizarProcessos').disabled = tela; }
     renderLista();
   }
 
-  $('btnTransmitir').onclick = async () => {
-    if (!entrou || stream) return;
-    config = montarConfig();
-    const pidExcluir = emTauri ? +($('processoExcluir').value || 0) : 0;
-    if (pidExcluir) {
-      try { await iniciarAudioNativo(pidExcluir); }
-      catch (e) { mensagem('', 'Não foi possível iniciar a captura de áudio nativa; usando a captura padrão: ' + e, true); }
+  const iniciando = { tela: false, camera: false };
+  async function iniciarTransmissao(fonte) {
+    if (!entrou || transmissoes[fonte] || iniciando[fonte]) return;
+    iniciando[fonte] = true;
+    try {
+      const cfg = montarConfig();
+      let stream;
+      if (fonte === 'tela') {
+        const pidExcluir = emTauri ? +($('processoExcluir').value || 0) : 0;
+        if (pidExcluir) {
+          try { await iniciarAudioNativo(pidExcluir); }
+          catch (e) { mensagem('', 'Não foi possível iniciar a captura de áudio nativa; usando a captura padrão: ' + e, true); }
+        }
+        try { stream = await capturarTela(cfg); }
+        catch (e) {
+          mensagem('', 'Não foi possível capturar a tela. Selecione uma tela ou janela e permita o compartilhamento.', true);
+          await pararAudioNativo();
+          return;
+        }
+      } else {
+        try { stream = await capturarCamera(cfg); }
+        catch (e) {
+          mensagem('', 'Não foi possível acessar a câmera. Verifique se ela está conectada, se outro programa não a está usando e se o acesso foi permitido.', true);
+          return;
+        }
+        atualizarCameras().catch(() => {});
+      }
+      if (!entrou) { stream.getTracks().forEach(t => t.stop()); return; }
+      transmissoes[fonte] = { stream, config: cfg, espectadores: new Map() };
+      informarLive(fonte);
+      atualizarMinhaLive();
+      if (fonte === 'tela') avisarSemAudio();
+      mostrarInfoEnvio();
+    } finally {
+      iniciando[fonte] = false;
     }
-    try { stream = await capturar(); }
-    catch (e) {
-      mensagem('', 'Não foi possível capturar a tela. Selecione uma tela ou janela e permita o compartilhamento.', true);
-      config = null; await pararAudioNativo(); return;
-    }
-    informarLive();
-    atualizarMinhaLive();
-    avisarSemAudio();
-    mostrarInfoEnvio();
-  };
+  }
+  $('btnTransmitir').onclick = () => iniciarTransmissao('tela');
+  $('btnCamera').onclick = () => iniciarTransmissao('camera');
 
-  function pararTransmissao(motivo) {
-    if (!stream) return;
-    for (const [id] of [...espectadores]) fecharEspectador(id, true);
-    stream.getTracks().forEach(t => { t.onended = null; t.stop(); });
-    stream = null;
-    pararAudioNativo().catch(() => {});
-    clearInterval(timerEnvio);
-    ultimosEnvios.clear(); jaAvisouCpu = jaAvisouBanda = false;
-    if (assistindo === meuId) pararDeAssistir('');
-    informarLive();
+  function pararTransmissao(fonte, motivo) {
+    const t = transmissoes[fonte];
+    if (!t) return;
+    for (const id of [...t.espectadores.keys()]) fecharEspectador(fonte, id, true);
+    t.stream.getTracks().forEach(x => { x.onended = null; x.stop(); });
+    transmissoes[fonte] = null;
+    if (fonte === 'tela') pararAudioNativo().catch(() => {});
+    for (const k of [...ultimosEnvios.keys()]) if (k.startsWith(fonte + '|')) ultimosEnvios.delete(k);
+    if (!transmitindo()) { clearInterval(timerEnvio); jaAvisouCpu = jaAvisouBanda = false; }
+    pararDeAssistir(meuId + '|' + fonte);
+    informarLive(fonte);
     atualizarMinhaLive();
     if (motivo) mensagem('', motivo, true);
   }
-  $('btnPararLive').onclick = () => pararTransmissao('');
+  $('btnPararLive').onclick = () => pararTransmissao('tela', '');
+  $('btnPararCamera').onclick = () => pararTransmissao('camera', '');
 
-  // alguém pediu para assistir minha tela
-  function ligarPara(id, nick) {
-    const antigo = espectadores.get(id);
-    if (antigo) { espectadores.delete(id); try { antigo.call.close(); } catch (e) {} }
-    const call = peer.call(id, stream, { sdpTransform: sdpEnvio });
+  // alguém pediu para assistir uma das minhas transmissões
+  function ligarPara(fonte, id, nick) {
+    const t = transmissoes[fonte];
+    if (!t || !peer) return;
+    const antigo = t.espectadores.get(id);
+    if (antigo) { t.espectadores.delete(id); try { antigo.call.close(); } catch (e) {} }
+    const call = peer.call(id, t.stream, { sdpTransform: sdpEnvioPara(t), metadata: { fonte } });
     if (!call) return;
-    travarQualidade(call);
+    travarQualidade(call, () => t.config);
     const e = { call, nick };
-    espectadores.set(id, e);
-    const fim = () => { if (espectadores.get(id) === e) { espectadores.delete(id); informarLive(); atualizarMinhaLive(); } };
+    t.espectadores.set(id, e);
+    const fim = () => {
+      if (transmissoes[fonte] !== t || t.espectadores.get(id) !== e) return;
+      t.espectadores.delete(id);
+      informarLive(fonte);
+      atualizarMinhaLive();
+    };
     call.on('close', fim);
     call.on('error', fim);
   }
-  function atenderPedido(id, nick) {
-    if (!stream || !peer) return;
-    const novo = !espectadores.has(id);
-    ligarPara(id, nick);
-    if (novo) mensagem('', `${nick} está assistindo sua transmissão.`, true);
-    informarLive();
+  function atenderPedido(fonte, id, nick) {
+    const t = transmissoes[fonte];
+    if (!t || !peer) return;
+    const novo = !t.espectadores.has(id);
+    ligarPara(fonte, id, nick);
+    if (novo) mensagem('', `${nick} está assistindo sua ${fonte === 'camera' ? 'câmera' : 'tela'}.`, true);
+    informarLive(fonte);
     atualizarMinhaLive();
   }
-  function fecharEspectador(id, silencioso) {
-    const e = espectadores.get(id);
+  function fecharEspectador(fonte, id, silencioso) {
+    const t = transmissoes[fonte];
+    const e = t && t.espectadores.get(id);
     if (!e) return;
-    espectadores.delete(id);
+    t.espectadores.delete(id);
     try { e.call.close(); } catch (x) {}
-    if (!silencioso) { informarLive(); atualizarMinhaLive(); }
+    if (!silencioso) { informarLive(fonte); atualizarMinhaLive(); }
   }
 
   // ---------- mudar ao vivo (sem derrubar ninguém) ----------
+  // a qualidade escolhida vale para as duas transmissões
   function mudarQualidade() {
-    if (!stream) return;
-    const codecAntes = config.codec;
-    config = montarConfig();
-    const vt = stream.getVideoTracks()[0];
-    vt.applyConstraints(restricoesVideo(config)).catch(() => {});
-    if ('contentHint' in vt) vt.contentHint = config.prioridade === 'fluidez' ? 'motion' : 'detail';
-    if (config.codec !== codecAntes) {
-      // trocar codec exige renegociar: refaz a chamada com cada pessoa (ninguém sai)
-      for (const [id, e] of [...espectadores]) ligarPara(id, e.nick);
-    } else {
-      for (const e of espectadores.values()) e.call.reaplicar && e.call.reaplicar();
+    const cfg = montarConfig(); // também guarda as escolhas
+    const ativas = FONTES.filter(f => transmissoes[f]);
+    if (!ativas.length) return;
+    for (const f of ativas) {
+      const t = transmissoes[f];
+      const codecAntes = t.config.codec;
+      t.config = { ...cfg };
+      const vt = t.stream.getVideoTracks()[0];
+      vt.applyConstraints(restricoesVideo(t.config)).catch(() => {});
+      if (f === 'tela' && 'contentHint' in vt) vt.contentHint = cfg.prioridade === 'fluidez' ? 'motion' : 'detail';
+      if (t.config.codec !== codecAntes) {
+        // trocar codec exige renegociar: refaz a chamada com cada pessoa (ninguém sai)
+        for (const [id, e] of [...t.espectadores]) ligarPara(f, id, e.nick);
+      } else {
+        for (const e of t.espectadores.values()) e.call.reaplicar && e.call.reaplicar();
+      }
+      informarLive(f);
     }
-    informarLive();
-    const nomeCodec = NOME_CODEC[config.codec] || config.codec || '?';
-    mensagem('', `Transmissão atualizada: ${config.altura}p ${config.fps}fps, até ${(config.bitrate / 1e6).toFixed(1)} Mbps por espectador, codec ${nomeCodec}${config.codecEscolha === 'auto' ? ' (automático)' : ''}.`, true);
+    const nomeCodec = NOME_CODEC[cfg.codec] || cfg.codec || '?';
+    mensagem('', `Transmissão atualizada: ${cfg.altura}p ${cfg.fps}fps, até ${(cfg.bitrate / 1e6).toFixed(1)} Mbps por espectador, codec ${nomeCodec}${cfg.codecEscolha === 'auto' ? ' (automático)' : ''}.`, true);
   }
   for (const id of ['qualidade', 'fps', 'prioridade', 'bitrate', 'codec']) $(id).addEventListener('change', mudarQualidade);
 
-  async function trocarFaixas(id, e) {
+  async function trocarFaixas(fonte, id, e) {
+    const t = transmissoes[fonte];
     const pc = e.call.peerConnection;
-    if (!pc) return ligarPara(id, e.nick);
+    if (!pc) return ligarPara(fonte, id, e.nick);
     for (const kind of ['video', 'audio']) {
-      const nova = stream.getTracks().find(t => t.kind === kind) || null;
-      const tr = pc.getTransceivers().find(t => t.receiver.track && t.receiver.track.kind === kind);
+      const nova = t.stream.getTracks().find(x => x.kind === kind) || null;
+      const tr = pc.getTransceivers().find(x => x.receiver.track && x.receiver.track.kind === kind);
       // a conexão antiga não tem lugar para áudio: refaz a chamada com essa pessoa
-      if (!tr) { if (nova) return ligarPara(id, e.nick); continue; }
-      try { await tr.sender.replaceTrack(nova); } catch (x) { return ligarPara(id, e.nick); }
+      if (!tr) { if (nova) return ligarPara(fonte, id, e.nick); continue; }
+      try { await tr.sender.replaceTrack(nova); } catch (x) { return ligarPara(fonte, id, e.nick); }
     }
     e.call.reaplicar && e.call.reaplicar();
   }
+  // troca o stream de uma transmissão no ar (outra tela, outra câmera, microfone liga/desliga)
+  async function trocarStream(fonte, novo) {
+    const t = transmissoes[fonte];
+    const antigo = t.stream;
+    t.stream = novo;
+    const previa = assistindo.get(meuId + '|' + fonte);
+    if (previa) previa.el.video.srcObject = novo;
+    for (const [id, e] of [...t.espectadores]) await trocarFaixas(fonte, id, e);
+    antigo.getTracks().forEach(x => { x.onended = null; x.stop(); });
+    informarLive(fonte);
+  }
 
   $('btnTrocarTela').onclick = async () => {
-    if (!stream) return;
+    const t = transmissoes.tela;
+    if (!t) return;
     let novo;
-    try { novo = await capturar(); }
+    try { novo = await capturarTela(t.config); }
     catch (x) { mensagem('', 'Troca cancelada. A transmissão continua com a tela anterior.', true); return; }
-    const antigo = stream;
-    stream = novo;
-    if (assistindo === meuId) $('video').srcObject = stream;
-    for (const [id, e] of [...espectadores]) await trocarFaixas(id, e);
-    antigo.getTracks().forEach(t => { t.onended = null; t.stop(); });
+    if (transmissoes.tela !== t) { novo.getTracks().forEach(x => x.stop()); return; }
+    await trocarStream('tela', novo);
     mensagem('', 'Tela alterada. Os espectadores continuam conectados.', true);
     avisarSemAudio();
   };
 
+  async function recapturarCamera() {
+    const t = transmissoes.camera;
+    if (!t) return;
+    let novo;
+    try { novo = await capturarCamera(t.config); }
+    catch (x) { mensagem('', 'Não foi possível trocar a câmera. A transmissão continua com a anterior.', true); return; }
+    if (transmissoes.camera !== t) { novo.getTracks().forEach(x => x.stop()); return; }
+    await trocarStream('camera', novo);
+  }
+  $('camera').addEventListener('change', () => { guardar('prisma-camera', $('camera').value); recapturarCamera(); });
+  $('microfone').addEventListener('change', () => { guardar('prisma-microfone', $('microfone').checked ? 'sim' : 'nao'); recapturarCamera(); });
+
   // ---------- diagnóstico do envio ----------
-  const ultimosEnvios = new Map();
+  const ultimosEnvios = new Map(); // 'fonte|id' -> { t, b }
   let jaAvisouCpu = false, jaAvisouBanda = false;
   const MOTIVO = { bandwidth: 'limitado pela rede', cpu: 'limitado pelo processador', other: 'limitado (outro)' };
-  async function lerEnvios() {
+  async function lerEnvios(fonte) {
+    const t = transmissoes[fonte];
     const lista = [];
-    for (const [id, e] of [...espectadores]) {
+    if (!t) return lista;
+    for (const [id, e] of [...t.espectadores]) {
       const pc = e.call && e.call.peerConnection;
       if (!pc) continue;
       const r = { nick: e.nick };
+      const chave = fonte + '|' + id;
       (await pc.getStats()).forEach(x => {
         if (x.type === 'outbound-rtp' && x.kind === 'video') {
-          const u = ultimosEnvios.get(id);
+          const u = ultimosEnvios.get(chave);
           if (u && x.timestamp > u.t && x.bytesSent >= u.b) r.kbps = (x.bytesSent - u.b) * 8 / (x.timestamp - u.t);
-          ultimosEnvios.set(id, { t: x.timestamp, b: x.bytesSent });
+          ultimosEnvios.set(chave, { t: x.timestamp, b: x.bytesSent });
           r.lim = x.qualityLimitationReason; r.w = x.frameWidth; r.h = x.frameHeight;
         }
         if (x.type === 'candidate-pair' && x.nominated && x.availableOutgoingBitrate) r.rede = x.availableOutgoingBitrate / 1000;
@@ -1426,27 +1850,30 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
   function mostrarInfoEnvio() {
     clearInterval(timerEnvio);
     timerEnvio = setInterval(async () => {
-      if (!stream) return;
-      const s = stream.getVideoTracks()[0].getSettings();
-      const audio = stream.getAudioTracks().length ? 'com áudio' : 'SEM áudio';
-      let txt = `capturando ${s.width}×${s.height} ${Math.round(s.frameRate || 0)}fps · ${audio}`;
-      const envios = (await lerEnvios()).filter(r => r.kbps != null);
-      if (envios.length) {
-        const pior = envios.reduce((a, b) => (a.kbps <= b.kbps ? a : b));
-        txt += ` · enviando ${mbps(pior.kbps)}${envios.length > 1 ? ' (pior: ' + pior.nick + ')' : ''}`;
-        if (pior.w) txt += ` em ${pior.w}×${pior.h}`;
-        if (pior.rede) txt += ` · rede estima ${mbps(pior.rede)}`;
-        if (MOTIVO[pior.lim]) txt += ` · ${MOTIVO[pior.lim]}`;
-        if (pior.lim === 'cpu' && !jaAvisouCpu) {
-          jaAvisouCpu = true;
-          mensagem('', 'O processador está no limite para codificar o vídeo. Experimente o codec H.264 (aceleração por hardware), 30 fps ou 720p.', true);
+      for (const [fonte, alvo] of [['tela', 'infoLive'], ['camera', 'infoCamera']]) {
+        const t = transmissoes[fonte];
+        if (!t) continue;
+        const s = t.stream.getVideoTracks()[0].getSettings();
+        const audio = t.stream.getAudioTracks().length ? 'com áudio' : 'SEM áudio';
+        let txt = `capturando ${s.width}×${s.height} ${Math.round(s.frameRate || 0)}fps · ${audio}`;
+        const envios = (await lerEnvios(fonte)).filter(r => r.kbps != null);
+        if (envios.length) {
+          const pior = envios.reduce((a, b) => (a.kbps <= b.kbps ? a : b));
+          txt += ` · enviando ${mbps(pior.kbps)}${envios.length > 1 ? ' (pior: ' + pior.nick + ')' : ''}`;
+          if (pior.w) txt += ` em ${pior.w}×${pior.h}`;
+          if (pior.rede) txt += ` · rede estima ${mbps(pior.rede)}`;
+          if (MOTIVO[pior.lim]) txt += ` · ${MOTIVO[pior.lim]}`;
+          if (pior.lim === 'cpu' && !jaAvisouCpu) {
+            jaAvisouCpu = true;
+            mensagem('', 'O processador está no limite para codificar o vídeo. Experimente o codec H.264 (aceleração por hardware), 30 fps ou 720p.', true);
+          }
+          if (pior.lim === 'bandwidth' && pior.rede && pior.rede * 1000 < t.config.bitrate * 0.6 && !jaAvisouBanda) {
+            jaAvisouBanda = true;
+            mensagem('', `A banda de upload disponível até ${pior.nick} está em torno de ${mbps(pior.rede)}, abaixo do configurado. Com vários espectadores (ou tela e câmera ao mesmo tempo), o upload é dividido entre eles.`, true);
+          }
         }
-        if (pior.lim === 'bandwidth' && pior.rede && pior.rede * 1000 < config.bitrate * 0.6 && !jaAvisouBanda) {
-          jaAvisouBanda = true;
-          mensagem('', `A banda de upload disponível até ${pior.nick} está em torno de ${mbps(pior.rede)}, abaixo do configurado. Com vários espectadores, o upload é dividido entre eles.`, true);
-        }
+        if (transmissoes[fonte] === t) $(alvo).textContent = txt;
       }
-      $('infoLive').textContent = txt;
     }, 2000);
   }
 
@@ -1455,35 +1882,40 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     ev.preventDefault();
     const texto = $('textoChat').value.trim().slice(0, 300);
     if (!texto || !entrou) return;
+    if (papel !== 'hub' && !hubPronto) { mensagem('', 'Reconectando à sala. Aguarde um instante para enviar mensagens.', true); return; }
     $('textoChat').value = '';
-    enviarHub({ t: 'chat', texto }); // o criador devolve para todos, inclusive você
+    enviarHub({ t: 'chat', texto }); // o anfitrião devolve para todos, inclusive você
   });
 
   // ---------- sair ----------
+  // Quem sai sendo anfitrião não encerra a sala: ao fechar as conexões, quem fica percebe e
+  // outra pessoa assume (ver MIGRAÇÃO). A sala só acaba quando a última pessoa sai.
   function sair(motivo) {
-    pararTransmissao('');
-    pararDeAssistir('', true);
-    if (conexaoHub) { try { conexaoHub.close(); } catch (e) {} }
-    for (const c of conexoes.values()) { try { c.close(); } catch (e) {} }
+    for (const f of FONTES) pararTransmissao(f, '');
+    for (const chave of [...assistindo.keys()]) pararDeAssistir(chave);
+    migracao = null; clearTimeout(timerMigracao);
+    const c = conexaoHub;
+    conexaoHub = null; hubPronto = false;
+    if (c) { try { c.close(); } catch (e) {} }
+    // limpa antes de fechar: senão cada fechamento vira um "fulano saiu" para quem ainda
+    // está conectado, e essa pessoa tira gente da fila da troca de anfitrião por engano
+    const abertas = [...conexoes.values()];
     conexoes.clear(); membrosHub.clear();
-    const p = peer;
-    peer = null;
-    if (p) { try { p.destroy(); } catch (e) {} }
-    papel = null; meuId = ''; conexaoHub = null; entrou = false; membros = []; config = null;
+    for (const x of abertas) { try { x.close(); } catch (e) {} }
+    for (const p of [peerHub, peer]) { if (p) { try { p.destroy(); } catch (e) {} } }
+    peerHub = null; peer = null;
+    papel = null; meuId = ''; entrou = false; membros = []; hostAtual = '';
     $('mensagens').innerHTML = '';
     $('sala').hidden = true; $('inicio').hidden = false; $('btnSair').hidden = true;
     $('chipCodigo').hidden = true; $('abas').hidden = true; $('avatarEu').hidden = true;
     $('logo').classList.remove('ao-vivo');
+    document.title = 'PrismaStream';
     status('desconectado');
     erro(motivo || '');
     atualizarPresenca();
   }
-  $('btnSair').onclick = () => {
-    if (papel === 'hub' && membros.length > 1 &&
-        !confirm('Você é o anfitrião desta sala. Ao sair, a sala será encerrada para todos os participantes. Deseja sair?')) return;
-    sair('');
-  };
-  window.addEventListener('beforeunload', () => { if (peer) peer.destroy(); });
+  $('btnSair').onclick = () => sair('');
+  window.addEventListener('beforeunload', () => { for (const p of [peerHub, peer]) if (p) p.destroy(); });
 })();
 </script>
 </body>
