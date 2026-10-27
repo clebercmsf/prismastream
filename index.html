@@ -58,6 +58,8 @@ header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; back
 .chip-codigo { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 8px 6px 14px; font-weight: 500; color: var(--muted); }
 .chip-codigo b { font: 600 14px var(--mono); letter-spacing: .14em; color: var(--fg); }
 .chip-codigo svg { width: 28px; height: 28px; padding: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); }
+#btnSons .som-off, #btnSons[aria-pressed="false"] .som-on { display: none; }
+#btnSons[aria-pressed="false"] .som-off { display: block; }
 .avatar-eu { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); border: 1px solid var(--line);
   color: var(--accent-2); font-weight: 600; text-transform: uppercase; }
 @media (max-width: 880px) { .abas { order: 3; width: 100%; } .aba { flex: 1; justify-content: center; } }
@@ -103,9 +105,24 @@ button.vazio:hover { background: var(--soft); border-color: var(--line); }
 .boas-vindas ol { margin: 0; padding-left: 20px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
 #codigoSala { font-family: var(--mono); text-transform: uppercase; letter-spacing: .18em; }
 
-/* Sala: três colunas no PC largo, duas no notebook, uma no celular */
+/* Sala: três colunas no PC largo (lista 10%, palco 80%, chat 10%), duas no notebook, uma no celular.
+   Dentro da sala a página usa a largura toda da janela, sem o limite de 1640px da tela inicial. */
+.wrap:has(> .sala:not([hidden])) { max-width: none; }
 .sala { display: grid; gap: 18px; align-items: start;
-  grid-template-columns: 320px minmax(0, 1fr) 380px; grid-template-areas: "lista palco chat"; }
+  grid-template-columns: minmax(180px, 1fr) minmax(0, 8fr) minmax(180px, 1fr); grid-template-areas: "lista palco chat"; }
+/* colunas estreitas da lista e do chat: itens compactos */
+@media (min-width: 1241px) {
+  .coluna-lista .painel { padding: 12px; }
+  .coluna-lista .live-item { gap: 10px; padding: 6px; align-items: flex-start; }
+  .coluna-lista .miniatura { width: 40px; aspect-ratio: 1; font-size: 17px; }
+  .coluna-lista .miniatura .tag { left: 2px; bottom: 2px; font-size: 7px; padding: 2px 3px; }
+  .coluna-lista .live-texto button { align-self: stretch; }
+  .sala .chat h3 { padding: 12px; flex-wrap: wrap; gap: 4px 10px; }
+  .chat #mensagens { padding: 12px; gap: 12px; }
+  .chat .msg { grid-template-columns: 28px minmax(0, 1fr) auto; column-gap: 8px; }
+  .chat .msg .avatar { width: 28px; height: 28px; font-size: 13px; }
+  .sala .chat form { margin: 10px; }
+}
 @media (max-width: 1240px) { .sala { grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "palco chat" "lista chat"; } }
 @media (max-width: 880px) { .sala { grid-template-columns: minmax(0, 1fr); grid-template-areas: "palco" "lista" "chat"; } }
 .coluna-lista { grid-area: lista; min-width: 0; position: sticky; top: 88px; }
@@ -117,7 +134,12 @@ button.vazio:hover { background: var(--soft); border-color: var(--line); }
 .titulo-live::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--live); }
 
 .tela { position: relative; background: var(--stage); border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; display: grid; place-items: center; }
-.tela video { width: 100%; height: 100%; object-fit: contain; background: var(--stage); }
+/* o vídeo fica preso à caixa do quadro (e não o contrário): assim uma imagem 4:3 ou 21:9 nunca
+   estoura o 16:9 do quadro, e em tela cheia num monitor ultrawide sobra faixa preta em vez de cortar */
+.tela video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: var(--stage); }
+/* o palco ocupa a largura toda, mas um quadro nunca passa da altura da janela */
+.grade > .quadro { max-height: calc(100vh - 190px); }
+.quadro:fullscreen, .quadro.cheia { aspect-ratio: auto; width: 100vw; height: 100vh; max-height: none; }
 .tela .aviso { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; color: #c9cbe0; font: 500 16px/1.45 var(--body);
   text-align: center; padding: 140px 24px 24px; text-wrap: balance;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d6390' stroke-width='1.4' stroke-linejoin='round'%3E%3Crect x='2.5' y='3.5' width='19' height='13' rx='1.5'/%3E%3Cpath d='M8 20.5h8M12 16.5v4'/%3E%3Cpath d='m10.2 7.4 4.3 2.6-4.3 2.6z' fill='%235d6390'/%3E%3C/svg%3E") center calc(50% - 40px) / 96px no-repeat; }
@@ -154,12 +176,18 @@ button.vazio:hover { background: var(--soft); border-color: var(--line); }
    em tela cheia o cursor some junto */
 .player { display: flex; position: absolute; left: 0; right: 0; bottom: 0; align-items: center; gap: 8px; padding: 40px 14px 12px;
   background: linear-gradient(transparent, var(--veu)); color: #fff; opacity: 0; transition: opacity .25s; pointer-events: none; }
-.quadro.ativo .player, .quadro:focus-within .player { opacity: 1; }
+/* foco pelo teclado mantém o player visível fora da tela cheia; em tela cheia só o movimento do
+   mouse ou uma tecla o trazem de volta (o foco que fica no botão de tela cheia não o prende na tela) */
+.quadro.ativo .player, .quadro:not(.cheia):has(.player :focus-visible) .player { opacity: 1; }
 /* o degradê nunca pega o clique (clique na miniatura, duplo clique no vídeo); os botões só quando visíveis */
-.quadro.ativo .player > *, .quadro:focus-within .player > * { pointer-events: auto; }
+.quadro.ativo .player > *, .quadro:not(.cheia):has(.player :focus-visible) .player > * { pointer-events: auto; }
 .quadro.cheia { border-radius: 0; cursor: none; }
 .quadro.cheia.ativo { cursor: default; }
-.quadro.cheia .player { padding: 40px 20px 18px; }
+/* em tela cheia o player e o selo somem devagar e só o vídeo fica na tela */
+.quadro.cheia .player { padding: 40px 20px 18px; transition: opacity .7s; }
+.quadro.cheia .selos { transition: opacity .7s; }
+.quadro.cheia:not(.ativo) .selos { opacity: 0; }
+.quadro.cheia.ativo :is(.player, .selos) { transition-duration: .2s; }
 .player button { background: transparent; border-color: transparent; color: #fff; }
 .player button:hover { background: var(--veu-botao); border-color: transparent; }
 .player .contagem { color: #fff; font-size: 12px; }
@@ -277,6 +305,10 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>
     </button>
     <div class="status" id="status">desconectado</div>
+    <button class="icone vazio" id="btnSons" aria-pressed="true" aria-label="Efeitos sonoros" title="Efeitos sonoros: ligados">
+      <svg class="som-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+      <svg class="som-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/></svg>
+    </button>
     <button class="icone vazio" id="btnTema" aria-label="Alternar tema claro/escuro" title="Alternar tema">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
     </button>
@@ -504,7 +536,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
 (() => {
   // mude aqui a cada versão nova distribuída
   // (o primeiro número diferente = versões incompatíveis, a sala recusa)
-  const VERSAO = '2.0.0';
+  const VERSAO = '2.1.0';
   const maior = v => String(v || '0').split('.')[0];
 
   const $ = id => document.getElementById(id);
@@ -824,15 +856,22 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
   const liveDe = (id, fonte) => { const m = membros.find(x => x.id === id); return m && m.lives ? m.lives[fonte] : null; };
   function receber(d) {
     if (!d) return;
-    if (d.t === 'chat') mensagem(d.nick, d.texto);
+    if (d.t === 'chat') {
+      mensagem(d.nick, d.texto);
+      if (d.nick !== apelido) som('mensagem');
+    }
     else if (d.t === 'sistema') mensagem('', d.texto, true);
     else if (d.t === 'membros') {
       membros = Array.isArray(d.lista) ? d.lista : [];
       hostAtual = d.host || '';
+      notarMudancas(membros, !!d.parcial);
       // lista parcial (logo após troca de anfitrião): só vale para quem já está nela
       for (const a of [...assistindo.values()]) {
         if (a.id === meuId || liveDe(a.id, a.fonte)) continue;
-        if (!d.parcial || membros.some(m => m.id === a.id)) pararDeAssistir(a.chave, `A transmissão de ${a.nick} foi encerrada.`);
+        if (!d.parcial || membros.some(m => m.id === a.id)) {
+          pararDeAssistir(a.chave, `A transmissão de ${a.nick} foi encerrada.`);
+          som('encerrou');
+        }
       }
       renderLista();
     }
@@ -1117,6 +1156,80 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     guardar('prisma-tema', novo);
   };
 
+  // ---------- efeitos sonoros ----------
+  // sintetizados na hora com Web Audio (sem arquivos de áudio, o HTML continua um arquivo só).
+  // Cada som é uma lista de notas: [frequência Hz, início s, duração s, forma da onda, volume]
+  const SONS = {
+    clique:     [[1500, 0, .03, 'triangle', .04]],
+    mensagem:   [[880, 0, .09, 'sine', .11], [1320, .07, .15, 'sine', .09]],
+    entrou:     [[523, 0, .12, 'sine', .13], [784, .09, .22, 'sine', .11]],
+    saida:      [[659, 0, .12, 'sine', .12], [440, .1, .26, 'sine', .1]],
+    live:       [[523, 0, .11, 'triangle', .1], [659, .09, .11, 'triangle', .1], [784, .18, .11, 'triangle', .1], [1047, .27, .32, 'triangle', .09]],
+    encerrou:   [[784, 0, .13, 'triangle', .1], [622, .12, .13, 'triangle', .1], [466, .24, .36, 'triangle', .09]],
+    espectador: [[988, 0, .08, 'sine', .09], [1319, .08, .22, 'sine', .08]],
+  };
+  let sonsLigados = ler('prisma-sons') !== 'nao', ctxSons = null;
+  const ultimoSom = {};
+  function som(nome) {
+    if (!sonsLigados || !SONS[nome]) return;
+    // o mesmo aviso disparado por dois caminhos ao mesmo tempo (ex.: saiu da sala e da live) toca uma vez só
+    const agora = performance.now();
+    if (agora - (ultimoSom[nome] || 0) < 350) return;
+    ultimoSom[nome] = agora;
+    try {
+      ctxSons = ctxSons || new AudioContext();
+      if (ctxSons.state === 'suspended') ctxSons.resume().catch(() => {});
+      const t0 = ctxSons.currentTime + .01;
+      for (const [freq, ini, dur, forma, vol] of SONS[nome]) {
+        const osc = ctxSons.createOscillator(), g = ctxSons.createGain();
+        osc.type = forma;
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, t0 + ini);
+        g.gain.linearRampToValueAtTime(vol, t0 + ini + .01);
+        g.gain.exponentialRampToValueAtTime(.0001, t0 + ini + dur);
+        osc.connect(g).connect(ctxSons.destination);
+        osc.start(t0 + ini);
+        osc.stop(t0 + ini + dur + .02);
+      }
+    } catch (e) {}
+  }
+  function atualizarBotaoSons() {
+    $('btnSons').setAttribute('aria-pressed', String(sonsLigados));
+    $('btnSons').title = 'Efeitos sonoros: ' + (sonsLigados ? 'ligados' : 'desligados');
+  }
+  atualizarBotaoSons();
+  $('btnSons').onclick = () => {
+    sonsLigados = !sonsLigados;
+    guardar('prisma-sons', sonsLigados ? 'sim' : 'nao');
+    atualizarBotaoSons();
+    som('clique');
+  };
+  // clique leve em qualquer botão do app (o de sons toca o dele depois de ligar)
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest && ev.target.closest('button');
+    if (b && b.id !== 'btnSons' && !b.disabled) som('clique');
+  }, true);
+
+  // compara cada lista nova com a anterior para tocar "entrou", "saiu" e "transmissão nova".
+  // Lista parcial (logo após troca de anfitrião) só acrescenta: quem está reconectando não
+  // conta como saída, e quem volta não conta como novidade.
+  const conhecidos = new Set(), livesConhecidas = new Set();
+  let primeiraLista = true;
+  function notarMudancas(lista, parcial) {
+    const ids = new Set(lista.map(m => m.id));
+    const lives = new Set();
+    for (const m of lista) for (const f of FONTES) if (m.lives && m.lives[f]) lives.add(m.id + '|' + f);
+    if (primeiraLista) { primeiraLista = false; som('entrou'); }
+    else {
+      if ([...ids].some(id => !conhecidos.has(id))) som('entrou');
+      if (!parcial && [...conhecidos].some(id => !ids.has(id))) som('saida');
+      if ([...lives].some(k => !livesConhecidas.has(k) && !k.startsWith(meuId + '|'))) som('live');
+    }
+    if (!parcial) { conhecidos.clear(); livesConhecidas.clear(); }
+    for (const id of ids) conhecidos.add(id);
+    for (const k of lives) livesConhecidas.add(k);
+  }
+
   // ---------- lista de transmissões ----------
   // cada pessoa pode ter até duas: a tela e a câmera, que aparecem como itens separados
   function renderLista() {
@@ -1168,6 +1281,11 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       const info = liveDe(a.id, a.fonte);
       a.el.olho.hidden = !info;
       if (info) a.el.olhoN.textContent = info.n;
+      // alguém começou ou parou de assistir a mesma transmissão que eu (base marcada quando o vídeo chegou)
+      if (info && a.espectadores != null && info.n !== a.espectadores) {
+        som(info.n > a.espectadores ? 'espectador' : 'saida');
+        a.espectadores = info.n;
+      }
     }
     atualizarPresenca();
   }
@@ -1191,7 +1309,9 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       mensagem('', `É possível assistir até ${MAX_ASSISTINDO} transmissões ao mesmo tempo. Feche uma para abrir outra.`, true);
       return;
     }
-    const a = { chave, id, fonte, nick: m.nick, call: null, volume: volumePadrao, mudo: false, ultimoRecebido: null, religacoes: 0 };
+    // espectadores: quantos assistem junto comigo (null até o vídeo chegar; a contagem me inclui)
+    const a = { chave, id, fonte, nick: m.nick, call: null, volume: volumePadrao, mudo: false, ultimoRecebido: null, religacoes: 0,
+      nInicial: m.lives[fonte].n || 0, espectadores: null };
     a.el = criarQuadro(a);
     assistindo.set(chave, a);
     if (id === meuId) {
@@ -1229,6 +1349,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       }
       a.el.aviso.hidden = true;
       a.religacoes = 0;
+      if (a.espectadores == null) { const i = liveDe(a.id, a.fonte); a.espectadores = Math.max(i ? i.n : 0, a.nInicial + 1); }
     });
     call.on('close', () => {
       if (a.call !== call || assistindo.get(a.chave) !== a) return;
@@ -1241,6 +1362,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
         setTimeout(() => { if (assistindo.get(a.chave) === a && !a.call) enviarHub({ t: 'assistir', alvo: a.id, fonte: a.fonte }); }, 3000);
       } else {
         a.el.aviso.textContent = 'A transmissão foi interrompida. Feche este quadro e clique em Assistir para tentar de novo.';
+        som('encerrou');
       }
     });
   }
@@ -1395,16 +1517,22 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     else (quadro.requestFullscreen ? quadro.requestFullscreen() : Promise.reject()).catch(() => {});
   }
   // o player aparece ao mexer o mouse ou tocar no quadro e some depois de 2,5 s parado
-  // (fica visível enquanto o mouse estiver em cima dele)
+  // (fora da tela cheia fica visível enquanto o mouse estiver em cima dos botões dele;
+  // em tela cheia some mesmo assim, até o mouse mexer de novo)
   const timersPlayer = new WeakMap();
-  function mostrarPlayer(quadro) {
+  function mostrarPlayer(quadro, ms = 2500) {
     quadro.classList.add('ativo');
     clearTimeout(timersPlayer.get(quadro));
     timersPlayer.set(quadro, setTimeout(() => {
-      if (quadro.querySelector('.player').matches(':hover')) mostrarPlayer(quadro);
+      if (!quadro.classList.contains('cheia') && quadro.querySelector('.player').matches(':hover')) mostrarPlayer(quadro);
       else quadro.classList.remove('ativo');
-    }, 2500));
+    }, ms));
   }
+  // em tela cheia, qualquer tecla também traz o player de volta
+  document.addEventListener('keydown', () => {
+    const q = document.fullscreenElement;
+    if (q && q.classList.contains('quadro')) mostrarPlayer(q);
+  });
   function esconderPlayer(quadro) { clearTimeout(timersPlayer.get(quadro)); quadro.classList.remove('ativo'); }
   document.addEventListener('fullscreenchange', () => {
     for (const a of assistindo.values()) {
@@ -1412,7 +1540,8 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
       a.el.quadro.classList.toggle('cheia', cheia);
       a.el.cheia.setAttribute('aria-label', cheia ? 'Sair da tela cheia' : 'Tela cheia');
       a.el.cheia.title = cheia ? 'Sair da tela cheia (Esc)' : 'Tela cheia';
-      if (cheia) mostrarPlayer(a.el.quadro); else esconderPlayer(a.el.quadro);
+      // ao entrar: os controles ficam um instante e somem num fade, deixando só o vídeo
+      if (cheia) mostrarPlayer(a.el.quadro, 1200); else esconderPlayer(a.el.quadro);
     }
   });
 
@@ -1722,6 +1851,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     const fim = () => {
       if (transmissoes[fonte] !== t || t.espectadores.get(id) !== e) return;
       t.espectadores.delete(id);
+      som('saida');
       informarLive(fonte);
       atualizarMinhaLive();
     };
@@ -1733,7 +1863,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     if (!t || !peer) return;
     const novo = !t.espectadores.has(id);
     ligarPara(fonte, id, nick);
-    if (novo) mensagem('', `${nick} está assistindo sua ${fonte === 'camera' ? 'câmera' : 'tela'}.`, true);
+    if (novo) { mensagem('', `${nick} está assistindo sua ${fonte === 'camera' ? 'câmera' : 'tela'}.`, true); som('espectador'); }
     informarLive(fonte);
     atualizarMinhaLive();
   }
@@ -1743,7 +1873,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     if (!e) return;
     t.espectadores.delete(id);
     try { e.call.close(); } catch (x) {}
-    if (!silencioso) { informarLive(fonte); atualizarMinhaLive(); }
+    if (!silencioso) { som('saida'); informarLive(fonte); atualizarMinhaLive(); }
   }
 
   // ---------- mudar ao vivo (sem derrubar ninguém) ----------
@@ -1905,6 +2035,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     for (const p of [peerHub, peer]) { if (p) { try { p.destroy(); } catch (e) {} } }
     peerHub = null; peer = null;
     papel = null; meuId = ''; entrou = false; membros = []; hostAtual = '';
+    conhecidos.clear(); livesConhecidas.clear(); primeiraLista = true;
     $('mensagens').innerHTML = '';
     $('sala').hidden = true; $('inicio').hidden = false; $('btnSair').hidden = true;
     $('chipCodigo').hidden = true; $('abas').hidden = true; $('avatarEu').hidden = true;
@@ -1914,7 +2045,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     erro(motivo || '');
     atualizarPresenca();
   }
-  $('btnSair').onclick = () => sair('');
+  $('btnSair').onclick = () => { som('saida'); sair(''); };
   window.addEventListener('beforeunload', () => { for (const p of [peerHub, peer]) if (p) p.destroy(); });
 })();
 </script>
