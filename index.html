@@ -348,7 +348,8 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
     <div class="cartao" id="cartaoEntrar">
       <h2>Entrar numa sala</h2>
       <p>Informe o código da sala para participar.</p>
-      <p class="abrir-app" id="abrirApp" hidden>Tem o aplicativo PrismaStream? <a id="linkApp" href="#">Abrir esta sala no aplicativo</a></p>
+      <p class="abrir-app" id="abrirApp" hidden>Tem o aplicativo PrismaStream? <a id="linkApp" href="#">Abrir esta sala no aplicativo</a>
+        <span id="avisoFecharAba" hidden><br>O aplicativo foi aberto. Você já pode fechar esta aba.</span></p>
       <label for="codigoSala"><span>Código da sala <em class="obrig" aria-hidden="true">*</em></span>
         <input id="codigoSala" maxlength="12" required autocomplete="off">
       </label>
@@ -536,7 +537,7 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
 (() => {
   // mude aqui a cada versão nova distribuída
   // (o primeiro número diferente = versões incompatíveis, a sala recusa)
-  const VERSAO = '2.1.0';
+  const VERSAO = '2.1.1';
   const maior = v => String(v || '0').split('.')[0];
 
   const $ = id => document.getElementById(id);
@@ -628,10 +629,36 @@ input[aria-invalid="true"] { border-color: var(--live); box-shadow: 0 0 0 3px co
   // instalado com a mesma sala. Se o app não estiver instalado o navegador não faz nada,
   // e a página continua funcionando normalmente.
   const salaDoLink = (params.get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  // Quando o app abre (direto, ou depois da confirmação do navegador) a aba perde o foco para
+  // ele: se ficar 4 s sem foco, a aba se fecha sozinha. Voltar para ela (cancelou a confirmação,
+  // não tem o app) ou mexer na página cancela, e depois de 20 s não fecha mais, para não sumir
+  // com a aba de quem resolveu usar a versão web. O navegador só deixa o script fechar a aba
+  // aberta por um link (histórico com uma página só); se recusar, fica o aviso.
+  let fechamentoAte = 0, timerFechar = null;
+  function armarFechamento() {
+    fechamentoAte = Date.now() + 20000;
+  }
+  function contarParaFechar() {
+    if (Date.now() > fechamentoAte || timerFechar) return;
+    timerFechar = setTimeout(() => {
+      timerFechar = null;
+      window.close();
+      // se ainda estamos aqui, o navegador não deixou fechar
+      $('avisoFecharAba').hidden = false;
+    }, 4000);
+  }
+  function cancelarFechamento() { clearTimeout(timerFechar); timerFechar = null; }
+  window.addEventListener('blur', contarParaFechar);
+  window.addEventListener('focus', cancelarFechamento);
+  for (const ev of ['pointerdown', 'keydown']) {
+    document.addEventListener(ev, e => { if (e.target !== $('linkApp')) { fechamentoAte = 0; cancelarFechamento(); } }, true);
+  }
   if (!emTauri && salaDoLink) {
     const link = 'prismastream://sala/' + salaDoLink;
     $('linkApp').href = link;
     $('abrirApp').hidden = false;
+    armarFechamento();
+    $('linkApp').addEventListener('click', armarFechamento);
     location.href = link;
   }
   // No app: o link que abriu o exe (ou que chegou com ele já aberto) preenche o código
